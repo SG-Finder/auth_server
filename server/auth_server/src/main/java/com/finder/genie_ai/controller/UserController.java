@@ -106,7 +106,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.PUT, produces = "application/json")
-    public @ResponseBody JsonObject changeUserInfo(@PathVariable("userId") String userId,
+    public @ResponseBody JsonObject updateUserInfo(@PathVariable("userId") String userId,
                                                    @RequestBody UserChangeInfoCommand command) throws JsonProcessingException {
 
         if (!userRepository.findByUserId(userId).isPresent()) {
