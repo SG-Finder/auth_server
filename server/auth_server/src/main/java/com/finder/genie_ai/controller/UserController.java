@@ -4,14 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finder.genie_ai.dao.UserRepository;
 import com.finder.genie_ai.exception.*;
-import com.finder.genie_ai.model.token.SessionTokenModel;
+import com.finder.genie_ai.model.session_manage.SessionUserInfoModel;
 import com.finder.genie_ai.model.user.UserModel;
 import com.finder.genie_ai.model.user.command.UserChangeInfoCommand;
 import com.finder.genie_ai.model.user.command.UserSignInCommand;
 import com.finder.genie_ai.model.user.command.UserSignUpCommand;
 import com.finder.genie_ai.redis_dao.SessionTokenRedisRepository;
 import com.finder.genie_ai.util.TokenGenerator;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,9 +84,10 @@ public class UserController {
         if (user.getPasswd().equals(command.getPasswd())) {
             response.setStatus(204);
             String token = TokenGenerator.generateSessionToken(user.getUserId());
-            response.setHeader("session-token", token);
-            SessionTokenModel sessionTokenModel = new SessionTokenModel(token, user.getUserId(), request.getRemoteAddr(), LocalDateTime.now());
-            sessionTokenRedisRepository.saveSessionToken(sessionTokenModel.getToken(), mapper.writeValueAsString(sessionTokenModel));
+            response.setHeader("session-session_manage", token);
+
+            SessionUserInfoModel userInfoModel = new SessionUserInfoModel(user.getUserId(), token, request.getRemoteAddr());
+            sessionTokenRedisRepository.saveSessionToken(token, user.getUserId(), mapper.writeValueAsString(userInfoModel));
         }
         else {
             throw new UnauthorizedException();
@@ -99,10 +99,10 @@ public class UserController {
     public void signoutUser(@RequestHeader(name = "session-token") String token,
                             HttpServletResponse response) {
         if (sessionTokenRedisRepository.deleteSessionToken(token) != 0) {
-            response.setHeader("expired-token", Boolean.TRUE.toString());
+            response.setHeader("expired-session_manage", Boolean.TRUE.toString());
         }
         else {
-            response.setHeader("expired-token", Boolean.FALSE.toString());
+            response.setHeader("expired-session_manage", Boolean.FALSE.toString());
         }
         response.setStatus(204);
     }

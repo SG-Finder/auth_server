@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
 public class UnauthorizedException extends BaseException {
 
-    public static final String MESSAGE = "wrong password or session-token in header";
+    public static final String MESSAGE = "wrong password or session-session_manage in header";
 
     public UnauthorizedException() {
         super(HttpStatus.UNAUTHORIZED.value(), MESSAGE);

@@ -1,4 +1,4 @@
-package com.finder.genie_ai.model.token;
+package com.finder.genie_ai.model.session_manage;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -8,26 +8,14 @@ public class SessionTokenModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private String token;
-    private String userId;
-    private String ip;
     private LocalDateTime signinAt;
 
-    public SessionTokenModel(String token, String userId, String ip, LocalDateTime signinAt) {
+    public SessionTokenModel(String token, LocalDateTime signinAt) {
         this.token = token;
-        this.userId = userId;
-        this.ip = ip;
         this.signinAt = signinAt;
     }
 
     public SessionTokenModel() {}
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     public String getToken() {
         return token;
@@ -35,14 +23,6 @@ public class SessionTokenModel implements Serializable {
 
     public void setToken(String token) {
         this.token = token;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
     }
 
     public LocalDateTime getSigninAt() {
@@ -59,23 +39,19 @@ public class SessionTokenModel implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         SessionTokenModel that = (SessionTokenModel) o;
         return Objects.equals(token, that.token) &&
-                Objects.equals(userId, that.userId) &&
-                Objects.equals(ip, that.ip) &&
                 Objects.equals(signinAt, that.signinAt);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(token, userId, ip, signinAt);
+        return Objects.hash(token, signinAt);
     }
 
     @Override
     public String toString() {
         return "SessionTokenModel{" +
-                "token='" + token + '\'' +
-                ", userId='" + userId + '\'' +
-                ", ip='" + ip + '\'' +
+                "session_manage='" + token + '\'' +
                 ", signinAt=" + signinAt +
                 '}';
     }
