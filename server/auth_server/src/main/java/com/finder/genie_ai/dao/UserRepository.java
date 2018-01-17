@@ -20,9 +20,10 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
     @Modifying(clearAutomatically = true)
     @Transactional
     @Query(value = "UPDATE users" +
-            "SET user_name = :userName, email = :email, birth = :birth, gender = :gender, introduce = :introduce " +
+            "SET user_name = :userName, passwd :passwd, email = :email, birth = :birth, gender = :gender, introduce = :introduce " +
             "WHERE user_id = :userId", nativeQuery = true)
     int updateUserInfo(@Param("userId") String userId,
+                       @Param("passwd") String passwd,
                        @Param("userName") String userName,
                        @Param("email") String email,
                        @Param("birth") LocalDate birth,

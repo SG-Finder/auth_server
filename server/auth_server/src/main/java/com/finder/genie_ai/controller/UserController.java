@@ -147,11 +147,17 @@ public class UserController {
             throw new UnauthorizedException();
         }
 
-        if (!userRepository.findByUserId(userId).isPresent()) {
+        Optional<UserModel> user = userRepository.findByUserId(userId);
+        if (!user.isPresent()) {
             throw new NotFoundException("Doesn't find user by userId. Please register first.");
         }
 
-        int resCount = userRepository.updateUserInfo(userId, command.getUserName(), command.getEmail(), LocalDate.parse(command.getBirth()), command.getGender(), command.getIntroduce());
+        int resCount = userRepository.updateUserInfo(userId,
+                bCryptPasswordEncoder.encode(command.getPasswd() + user.get().getSalt()),
+                command.getUserName(), command.getEmail(),
+                LocalDate.parse(command.getBirth()),
+                command.getGender(),
+                command.getIntroduce());
         if (resCount == 0) {
             throw new ServerException("doesn't execute query");
         }

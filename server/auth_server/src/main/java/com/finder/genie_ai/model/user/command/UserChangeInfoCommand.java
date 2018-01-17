@@ -10,6 +10,8 @@ public class UserChangeInfoCommand {
     @NotNull
     private String userName;
     @NotNull
+    private String passwd;
+    @NotNull
     private String email;
     @NotNull
     private String birth;
@@ -23,6 +25,14 @@ public class UserChangeInfoCommand {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getPasswd() {
+        return passwd;
+    }
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
     }
 
     public String getEmail() {
@@ -63,6 +73,7 @@ public class UserChangeInfoCommand {
         if (o == null || getClass() != o.getClass()) return false;
         UserChangeInfoCommand that = (UserChangeInfoCommand) o;
         return Objects.equals(userName, that.userName) &&
+                Objects.equals(passwd, that.passwd) &&
                 Objects.equals(email, that.email) &&
                 Objects.equals(birth, that.birth) &&
                 gender == that.gender &&
@@ -72,18 +83,18 @@ public class UserChangeInfoCommand {
     @Override
     public int hashCode() {
 
-        return Objects.hash(userName, email, birth, gender, introduce);
+        return Objects.hash(userName, passwd, email, birth, gender, introduce);
     }
 
     @Override
     public String toString() {
         return "UserChangeInfoCommand{" +
                 "userName='" + userName + '\'' +
+                ", passwd='" + passwd + '\'' +
                 ", email='" + email + '\'' +
                 ", birth='" + birth + '\'' +
-                ", gender='" + gender + '\'' +
+                ", gender=" + gender +
                 ", introduce='" + introduce + '\'' +
                 '}';
     }
-
 }
