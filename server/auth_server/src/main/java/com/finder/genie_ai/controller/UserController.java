@@ -14,6 +14,7 @@ import com.finder.genie_ai.util.TokenGenerator;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,11 +38,13 @@ public class UserController {
     private ObjectMapper mapper;
     @Autowired
     private SessionTokenRedisRepository sessionTokenRedisRepository;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
     @RequestMapping(value = "/signup", method = RequestMethod.POST, produces = "application/json")
     public @ResponseBody JsonObject signupUser(@RequestBody @Valid UserSignUpCommand command,
-                                               BindingResult bindingResult) throws JsonProcessingException {
+                                               BindingResult bindingResult) throws JsonProcessingException, UnsupportedEncodingException {
         if (bindingResult.hasErrors()) {
             throw new BadRequestException("invalid parameter form");
         }
@@ -52,14 +55,14 @@ public class UserController {
         }
         else {
             UserModel user = new UserModel();
+            String salt = TokenGenerator.generateSaltValue();
+
             user.setUserId(command.getUserId());
-            //todo encript password
-            user.setPasswd(command.getPasswd());
-            //todo generate salt value
-            user.setSalt("dummy_salt_&!@3");
+            System.out.println(bCryptPasswordEncoder.encode(command.getPasswd() + salt));
+            user.setPasswd(bCryptPasswordEncoder.encode(command.getPasswd() + salt));
+            user.setSalt(salt);
             user.setUserName(command.getUserName());
             user.setEmail(command.getEmail());
-            System.out.println(LocalDate.parse(command.getBirth()));
             user.setBirth(LocalDate.parse(command.getBirth()));
             user.setGender(command.getGender());
             user.setIntroduce(command.getIntroduce());
@@ -81,7 +84,7 @@ public class UserController {
         UserModel user = userRepository
                             .findByUserId(command.getUserId())
                             .orElseThrow(() -> new NotFoundException("Doesn't find user by userId. Please register first."));
-        if (user.getPasswd().equals(command.getPasswd())) {
+        if (bCryptPasswordEncoder.matches(command.getPasswd() + user.getSalt(), user.getPasswd())) {
             response.setStatus(204);
             String token = TokenGenerator.generateSessionToken(user.getUserId());
             response.setHeader("session-session_manage", token);
@@ -97,8 +100,9 @@ public class UserController {
 
     @RequestMapping(value = "/signout", method = RequestMethod.DELETE)
     public void signoutUser(@RequestHeader(name = "session-token") String token,
+                            @RequestHeader(name = "userId") String userId,
                             HttpServletResponse response) {
-        if (sessionTokenRedisRepository.deleteSessionToken(token) != 0) {
+        if (sessionTokenRedisRepository.deleteSessionInfo(token, userId)) {
             response.setHeader("expired-session_manage", Boolean.TRUE.toString());
         }
         else {

@@ -2,6 +2,7 @@ package com.finder.genie_ai.util;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
+import java.util.Random;
 
 public class TokenGenerator {
 
@@ -12,9 +13,12 @@ public class TokenGenerator {
         return encoder.encodeToString(targetBytes);
     }
 
-    public static String generateSaltValue(String userId, String passwd) {
-
-        return null;
+    public static String generateSaltValue() throws UnsupportedEncodingException {
+        String seedValue = String.valueOf(new Random().nextLong() + System.currentTimeMillis());
+        System.out.println(seedValue);
+        byte[] targetBytes = seedValue.getBytes("utf-8");
+        Base64.Encoder encoder = Base64.getEncoder();
+        return encoder.encodeToString(targetBytes);
     }
 
 }

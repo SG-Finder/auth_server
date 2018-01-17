@@ -14,11 +14,11 @@ public class UserModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    @Column(name = "user_id", length = 45, nullable = false, unique = true)
+    @Column(name = "user_id", length = 60, nullable = false, unique = true)
     private String userId;
-    @Column(name = "passwd", length = 45, nullable = false)
+    @Column(name = "passwd", length = 200, nullable = false)
     private String passwd;
-    @Column(name = "salt", length = 30, nullable = false)
+    @Column(name = "salt", length = 60, nullable = false)
     private String salt;
     @Column(name = "user_name", length = 40, nullable = false)
     private String userName;

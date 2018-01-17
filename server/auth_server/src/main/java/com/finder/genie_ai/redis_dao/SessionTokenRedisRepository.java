@@ -60,4 +60,14 @@ public class SessionTokenRedisRepository {
     public long deleteSessionUserInfo(String userId) {
         return hashOps.delete(USERID, userId);
     }
+
+    public boolean deleteSessionInfo(String token, String userId) {
+        long count = deleteSessionToken(token) + deleteSessionUserInfo(userId);
+        if (count >= 2) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
