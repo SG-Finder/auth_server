@@ -4,20 +4,28 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finder.genie_ai.dao.UserRepository;
 import com.finder.genie_ai.exception.*;
+import com.finder.genie_ai.model.token.SessionTokenModel;
 import com.finder.genie_ai.model.user.UserModel;
 import com.finder.genie_ai.model.user.command.UserChangeInfoCommand;
 import com.finder.genie_ai.model.user.command.UserSignInCommand;
 import com.finder.genie_ai.model.user.command.UserSignUpCommand;
+import com.finder.genie_ai.redis_dao.SessionTokenRedisRepository;
+import com.finder.genie_ai.util.TokenGenerator;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -28,6 +36,8 @@ public class UserController {
     private UserRepository userRepository;
     @Autowired
     private ObjectMapper mapper;
+    @Autowired
+    private SessionTokenRedisRepository sessionTokenRedisRepository;
 
     @Transactional
     @RequestMapping(value = "/signup", method = RequestMethod.POST, produces = "application/json")
@@ -44,6 +54,7 @@ public class UserController {
         else {
             UserModel user = new UserModel();
             user.setUserId(command.getUserId());
+            //todo encript password
             user.setPasswd(command.getPasswd());
             //todo generate salt value
             user.setSalt("dummy_salt_&!@3");
@@ -62,7 +73,8 @@ public class UserController {
     @RequestMapping(value = "/signin", method = RequestMethod.POST)
     public void signinUser(@RequestBody @Valid UserSignInCommand command,
                            BindingResult bindingResult,
-                           HttpServletResponse response) {
+                           HttpServletRequest request,
+                           HttpServletResponse response) throws JsonProcessingException, UnsupportedEncodingException {
         if (bindingResult.hasErrors()) {
             throw new BadRequestException("invalid signin form");
         }
@@ -70,11 +82,12 @@ public class UserController {
         UserModel user = userRepository
                             .findByUserId(command.getUserId())
                             .orElseThrow(() -> new NotFoundException("Doesn't find user by userId. Please register first."));
-
         if (user.getPasswd().equals(command.getPasswd())) {
             response.setStatus(204);
-            //todo generate sessionToken
-            response.setHeader("sessionToken", "akjiodfj-asdkjf");
+            String token = TokenGenerator.generateSessionToken(user.getUserId());
+            response.setHeader("session-token", token);
+            SessionTokenModel sessionTokenModel = new SessionTokenModel(token, user.getUserId(), request.getRemoteAddr(), LocalDateTime.now());
+            sessionTokenRedisRepository.saveSessionToken(sessionTokenModel.getToken(), mapper.writeValueAsString(sessionTokenModel));
         }
         else {
             throw new UnauthorizedException();
@@ -82,7 +95,19 @@ public class UserController {
 
     }
 
-    @RequestMapping(value = "checkDup/{userId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/signout", method = RequestMethod.DELETE)
+    public void signoutUser(@RequestHeader(name = "session-token") String token,
+                            HttpServletResponse response) {
+        if (sessionTokenRedisRepository.deleteSessionToken(token) != 0) {
+            response.setHeader("expired-token", Boolean.TRUE.toString());
+        }
+        else {
+            response.setHeader("expired-token", Boolean.FALSE.toString());
+        }
+        response.setStatus(204);
+    }
+
+    @RequestMapping(value = "/checkDup/{userId}", method = RequestMethod.GET)
     public void checkDup(@PathVariable("userId") String userId, HttpServletResponse response) {
         if (userId == null) {
             throw new BadRequestException("doesn't exist path variable");
@@ -97,7 +122,12 @@ public class UserController {
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody JsonObject getUserInfo(@PathVariable("userId") String userId) throws JsonProcessingException {
+    public @ResponseBody JsonObject getUserInfo(@PathVariable("userId") String userId,
+                                                @RequestHeader(name = "session-token") String token) throws JsonProcessingException, UnsupportedEncodingException {
+        if (sessionTokenRedisRepository.findSessionToken(token) == null) {
+            throw new UnauthorizedException();
+        }
+
         UserModel user =  userRepository
                             .findByUserId(userId)
                             .orElseThrow(() -> new NotFoundException("Doesn't find user by userId"));
@@ -107,7 +137,11 @@ public class UserController {
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.PUT, produces = "application/json")
     public @ResponseBody JsonObject updateUserInfo(@PathVariable("userId") String userId,
-                                                   @RequestBody UserChangeInfoCommand command) throws JsonProcessingException {
+                                                   @RequestBody UserChangeInfoCommand command,
+                                                   @RequestHeader(name = "session-token") String token) throws JsonProcessingException {
+        if (sessionTokenRedisRepository.findSessionToken(token) == null) {
+            throw new UnauthorizedException();
+        }
 
         if (!userRepository.findByUserId(userId).isPresent()) {
             throw new NotFoundException("Doesn't find user by userId. Please register first.");
@@ -122,16 +156,17 @@ public class UserController {
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
-    public void deleteUser(@PathVariable("userId") String userId, @RequestHeader(name = "sessionToken") String sessionToken ) {
+    public void deleteUser(@PathVariable("userId") String userId,
+                           @RequestHeader(name = "session-token") String token) {
         if (userId == null) {
             throw new BadRequestException("doesn't exist path variable");
         }
-        //todo check in redis server
-        if (sessionToken == null) {
+        if (sessionTokenRedisRepository.findSessionToken(token) == null) {
             throw new UnauthorizedException();
         }
 
         userRepository.deleteByUserId(userId);
     }
+
 }
 

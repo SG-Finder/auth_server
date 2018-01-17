@@ -17,7 +17,6 @@ public class UserModelSerializer extends JsonSerializer<UserModel> {
     public void serialize(UserModel userModel,
                           JsonGenerator jsonGenerator,
                           SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
-
         jsonGenerator.writeStartObject();
         jsonGenerator.writeStringField("userId", userModel.getUserId());
         jsonGenerator.writeStringField("userName", userModel.getUserName());
@@ -26,6 +25,5 @@ public class UserModelSerializer extends JsonSerializer<UserModel> {
         jsonGenerator.writeStringField("gender", userModel.getGender().toString());
         jsonGenerator.writeStringField("introduce", userModel.getIntroduce());
         jsonGenerator.writeEndObject();
-
     }
 }
