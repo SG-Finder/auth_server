@@ -25,7 +25,6 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -87,7 +86,7 @@ public class UserController {
         if (bCryptPasswordEncoder.matches(command.getPasswd() + user.getSalt(), user.getPasswd())) {
             response.setStatus(204);
             String token = TokenGenerator.generateSessionToken(user.getUserId());
-            response.setHeader("session-session_manage", token);
+            response.setHeader("session-token", token);
 
             SessionUserInfoModel userInfoModel = new SessionUserInfoModel(user.getUserId(), token, request.getRemoteAddr());
             sessionTokenRedisRepository.saveSessionToken(token, user.getUserId(), mapper.writeValueAsString(userInfoModel));
@@ -103,10 +102,10 @@ public class UserController {
                             @RequestHeader(name = "userId") String userId,
                             HttpServletResponse response) {
         if (sessionTokenRedisRepository.deleteSessionInfo(token, userId)) {
-            response.setHeader("expired-session_manage", Boolean.TRUE.toString());
+            response.setHeader("expired-token", Boolean.TRUE.toString());
         }
         else {
-            response.setHeader("expired-session_manage", Boolean.FALSE.toString());
+            response.setHeader("expired-token", Boolean.FALSE.toString());
         }
         response.setStatus(204);
     }
