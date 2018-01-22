@@ -1,0 +1,17 @@
+{
+  "name": "matching_server",
+  "version": "1.0.0",
+  "description": "matching user for play game between similar competence",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "author": "codingsquid",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "redis": "^2.8.0",
+    "socket.io": "^2.0.4"
+  }
+}
