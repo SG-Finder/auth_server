@@ -16,6 +16,8 @@ const dbURL = 'mongodb://127.0.0.1:27017/';
 // customizing module
 const sessionManage = require('./redis_dao/session');
 
+// util
+
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
@@ -30,7 +32,7 @@ const matchingSpace = io.of('/matching');
 matchingSpace.on('connection', function (socket) {
     //console.log(socket.id);
     socket.on('ack', function (data) {
-        let key = "session:" + data.token + ":" + data.userID;
+        let key = "session:" + data.session_token + ":" + data.userId;
         sessionManage.isValidSession(redisClient, key, function (isValidSession) {
             if (isValidSession) {
                 sessionManage.findSessionData(redisClient, key, function (value) {
@@ -67,25 +69,26 @@ matchingSpace.on('connection', function (socket) {
     });
 
     socket.on('ready', function (data) {
+        // todo delete event it is just testing event
         if (player[socket.id] == null) {
-            socket.emit("retryReady", data);
+            socket.emit('retryReady', { error: "connection DB is fail"});
             return;
         }
         console.log(player[socket.id].user_id);
         socket.join(player[socket.id].tier, function () {
-            let room = Object.keys(socket.rooms);
-            console.log(room);
-            matchingSpace.to(player[socket.id].tier).emit('entry', player[socket.id].user_id + "님이 입장하셨습니다.");
+            matchingSpace.to(player[socket.id].tier).emit('entry', {
+                //todo sending data
+            });
         });
 
         if (player[socket.id].tier === 'BRONZE') {
-            bronzeRoomUserList[bronzeRoomUserList.length] = player;
+            bronzeRoomUserList[bronzeRoomUserList.length] = player[socket.id];
         }
         else if (player[socket.id].tier === 'SILVER') {
-            silverRoomUserList[silverRoomUserList.length] = player;
+            silverRoomUserList[silverRoomUserList.length] = player[socket.id];
         }
         else if (player[socket.id].tier === 'GOLD') {
-            goldRoomUserList[goldRoomUserList.length] = player;
+            goldRoomUserList[goldRoomUserList.length] = player[socket.id];
         }
         console.log(io.sockets.adapter.rooms);
     });
@@ -93,25 +96,37 @@ matchingSpace.on('connection', function (socket) {
     // todo seperate
     socket.on('disconnect', function (reason) {
         console.log(reason);
-        // if (player.tier === 'BRONZE') { //bronze
-        //     socket.leave('bronze', function () {
-        //         matchingSpace.to('bronze').emit('entry', player.user_id + "님이 퇴장하셨습니다.");
-        //     });
-        // }
-        // else if (player.tier === 'SILVER') { //silver
-        //     socket.leave('silver', function () {
-        //         matchingSpace.to('silver').emit('entry', player.user_id + "님이 퇴장하셨습니다.");
-        //     });
-        // }
-        // else if (player.tier === 'GOLD') { //gold
-        //     socket.leave('gold', function () {
-        //         matchingSpace.to('gold').emit('entry', player.user_id + "님이 퇴장하셨습니다.");
-        //     });
-        // }
+        socket.leave(player[socket.id].tier, function () {
+           matchingSpace.to(player[socket.id]).emit('leave', {
+               //todo sending data
+           });
+        });
+
+        //todo delete element of array with player array
+        // player[socket.id] 삭제
+        if (player[socket.id].tier === 'BRONZE') {
+            bronzeRoomUserList[bronzeRoomUserList.length] = player[socket.id];
+        }
+        else if (player[socket.id].tier === 'SILVER') {
+            silverRoomUserList[silverRoomUserList.length] = player[socket.id];
+        }
+        else if (player[socket.id].tier === 'GOLD') {
+            goldRoomUserList[goldRoomUserList.length] = player[socket.id];
+        }
     });
 
-    socket.on('matching', function (data) {
+    socket.on('gameStart', function (data) {
         //todo matching
+        socket.emit('matching', data);
+
+        socket.on('matchingAck', function (data) {
+            //todo matching data 비교 후 matching Success 후 disconnect
+            socket.emit('matchingResult', {
+                matching : true,
+                afterEvent : "disconnect"
+            });
+            socket.disconnect();
+        });
     });
 
     socket.on('sendMessage', function (msg) {

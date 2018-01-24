@@ -17,7 +17,7 @@
             });
 
             $('#login').submit(function(){
-                conn.emit("ack", {token:"asdf", userID:"gksxodnd007", gameId: $('#InputLogin').val()});
+                conn.emit("ack", {session_token:"asdf", userId: $('#InputLogin').val()});
                 return false;
             });
             $('#ready').submit(function(){
