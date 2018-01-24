@@ -17,6 +17,7 @@ const dbURL = 'mongodb://127.0.0.1:27017/';
 const sessionManage = require('./redis_dao/session');
 
 // util
+const game = require('./util/matchingGame');
 
 
 app.get('/', function (req, res) {

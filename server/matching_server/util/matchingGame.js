@@ -11,15 +11,14 @@ exports.matchingGame = function (playerArr) {
     playerA = playerArr[playerAIndex];
     playerB = playerArr[playerBIndex];
     let room = generateRoomId();
-    let matchingPlayers = {
+
+    return {
         playerId: {
             playerA: playerA.user_id,
             playerB: playerB.user_id
         },
         roomId: room
-    }
-
-    return matchingPlayers;
+    };
 };
 
 exports.generateRoomId = function () {
