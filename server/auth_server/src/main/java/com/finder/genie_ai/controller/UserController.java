@@ -132,7 +132,7 @@ public class UserController {
                                                 @RequestHeader(name = "session-token") String token,
                                                 @RequestHeader(name = "userId") String activeUserId,
                                                 HttpServletRequest request) throws JsonProcessingException, UnsupportedEncodingException {
-        if (!sessionTokenRedisRepository.isSessionValid(token, activeUserId)) {
+        if (!sessionTokenRedisRepository.isSessionValid(token, userId)) {
             throw new UnauthorizedException();
         }
 
@@ -153,7 +153,7 @@ public class UserController {
                                                    @RequestHeader(name = "session-token") String token,
                                                    @RequestHeader(name = "userId") String activeUserId,
                                                    HttpServletRequest request) throws JsonProcessingException {
-        if (!sessionTokenRedisRepository.isSessionValid(token, activeUserId) ) {
+        if (!sessionTokenRedisRepository.isSessionValid(token, userId) ) {
             throw new UnauthorizedException();
         }
 
@@ -187,7 +187,7 @@ public class UserController {
         if (userId == null) {
             throw new BadRequestException("doesn't exist path variable");
         }
-        if (!sessionTokenRedisRepository.isSessionValid(token, activeUserId)) {
+        if (!sessionTokenRedisRepository.isSessionValid(token, userId)) {
             throw new UnauthorizedException();
         }
         JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token, activeUserId));

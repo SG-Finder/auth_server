@@ -5,30 +5,61 @@
     <title>Socket.io Chat Example</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
-        var conn = io('http://localhost:3000');
-        var data = {
-            token: "dkajdfla",
-            userID: "gksxodnd007"
-        };
+        var conn = io.connect('http://localhost:3000/matching');
+        $(document).ready(function(){
+            $('#form').submit(function(){
+                conn.emit('sendMessage', { message: $('#Input').val() });
+                //socket.emit('message', "Input");
+                //$('#Input').val('');
+                return false;
+            });
+
+            $('#login').submit(function(){
+                conn.emit("ack", {token:"asdf", userID:"gksxodnd007", gameId: $('#InputLogin').val()});
+                return false;
+            });
+            $('#ready').submit(function(){
+                conn.emit('ready', {msg: $('#readyBTn').val()});
+                return false;
+            });
+        });
         conn.on('connect', function () {
-           conn.emit("ack", data, function (ack) {
-               console.log(ack);
-           });
+
+            conn.on('authorized', function (data) {
+                console.log(data);
+            });
+            conn.on('success-matching', function (data) {
+                console.log(data);
+            })
+            conn.on('disconnect', function () {
+                console.log("doesn't have authorization");
+            })
+            conn.on('entry', function(data) {
+                console.log(data);
+            })
+            conn.on('retryReady', function (data) {
+                console.log(data);
+            })
+            conn.on('receiveMessage', function (data) {
+                console.log(data.from + " : " + data.message);
+            })
         });
-        conn.on('authorized', function (data) {
-            console.log(data);
-        });
-        conn.on('success-matching', function (data) {
-            console.log(data);
-        })
-        conn.on('disconnect', function () {
-            console.log("doesn't have authorization");
-        })
     </script>
 </head>
 <body>
-
-
+<form id = "form" action = "">
+    message: <input type="text" id="Input"><br>
+    <input type="submit" value="Submit">
+</form>
+<form id = "login" action = "">
+    login: <input type="text" id="InputLogin"><br>
+    <input type="submit" value="Submit">
+</form>
+<form id = "ready" action = "">
+    ready: <input type="text" id="readyBtn"><br>
+    <input type="submit" value="Submit">
+</form>
 </body>
 </html>

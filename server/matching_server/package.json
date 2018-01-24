@@ -9,9 +9,11 @@
   "author": "codingsquid",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.18.2",
     "express": "^4.16.2",
+    "moment": "^2.20.1",
+    "mongodb": "^3.0.1",
     "redis": "^2.8.0",
+    "redis-scanner": "^0.1.1",
     "socket.io": "^2.0.4"
   }
 }

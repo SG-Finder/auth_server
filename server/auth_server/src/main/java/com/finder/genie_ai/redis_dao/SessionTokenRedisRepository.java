@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class SessionTokenRedisRepository {
 
     private static final String SESSION = "session";
+    public static final int TOKENKEY = 0;
+    public static final int USERKEY = 1;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -26,6 +28,32 @@ public class SessionTokenRedisRepository {
     @PostConstruct
     public void init() {
         this.valueOps = redisTemplate.opsForValue();
+    }
+
+    private List<String> scanRedis(String value, int method) {
+        StringBuffer key = new StringBuffer();
+        key.append("session:");
+        if (method == TOKENKEY) {
+            key.append(value).append(":*");
+        }
+        else if (method == USERKEY) {
+            key.append("*:").append(value);
+        }
+
+        Jedis jedis = new Jedis("localhost", 6379);
+        ScanParams scanParams = new ScanParams().count(20).match(key.toString());
+        String cursor = ScanParams.SCAN_POINTER_START;
+        do {
+            ScanResult<String> scanResult = jedis.scan(cursor, scanParams);
+            if (!scanResult.getResult().isEmpty()) {
+                scanResult.getResult().stream().forEach(System.out::println);
+                return scanResult.getResult();
+            }
+            cursor = scanResult.getStringCursor();
+        }
+        while (!cursor.equals(ScanParams.SCAN_POINTER_START));
+
+        return null;
     }
 
     public void saveSessionToken(String token, String userId, String data) {
@@ -53,36 +81,22 @@ public class SessionTokenRedisRepository {
         }
     }
 
-    public boolean isSessionByUserId(String userId) {
-        Jedis jedis = new Jedis("localhost", 6379);
-        ScanParams scanParams = new ScanParams().count(20).match(SESSION + ":*:" + userId);
-        String cursor = ScanParams.SCAN_POINTER_START;
-        do {
-            ScanResult<String> scanResult = jedis.scan(cursor, scanParams);
-            if (!scanResult.getResult().isEmpty()) {
-                scanResult.getResult().stream().forEach(System.out::println);
-                return true;
-            }
-            cursor = scanResult.getStringCursor();
+    public boolean isSessionValidByUserId(String userId) {
+        if (scanRedis(userId, USERKEY) == null) {
+            return false;
         }
-        while (!cursor.equals(ScanParams.SCAN_POINTER_START));
-        return false;
+        else {
+            return true;
+        }
     }
 
-    public boolean isSessionByToken(String token) {
-        Jedis jedis = new Jedis("localhost", 6379);
-        ScanParams scanParams = new ScanParams().count(20).match(SESSION + ":" + token + ":*");
-        String cursor = ScanParams.SCAN_POINTER_START;
-        do {
-            ScanResult<String> scanResult = jedis.scan(cursor, scanParams);
-            if (!scanResult.getResult().isEmpty()) {
-                scanResult.getResult().stream().forEach(System.out::println);
-                return true;
-            }
-            cursor = scanResult.getStringCursor();
+    public boolean isSessionValidByToken(String token) {
+        if (scanRedis(token, TOKENKEY) == null) {
+            return false;
         }
-        while (!cursor.equals(ScanParams.SCAN_POINTER_START));
-        return false;
+        else {
+            return true;
+        }
     }
 
     public List<String> findAllSessionInfo() {
