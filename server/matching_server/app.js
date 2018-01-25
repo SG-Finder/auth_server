@@ -102,15 +102,14 @@ matchingSpace.on('connection', function (socket) {
                 matchingResultData.playersId = {
                     playerA : player[socket.id].user_id,
                     playerB : opponentPlayer.user_id
-                }
+                };
                 matchingResultData.roomId = game.generateRoomId();
                 socket.emit('matchingResult', matchingResultData);
-                io.sockets.connected[opponentPlayer.socket_id].emit('matchingResult', matchingResultData);
-                socket.disconnect();
-                io.socket.connected[opponentPlayer.socket_id].disconnect();
+                console.log(opponentPlayer.socket_id);
+                matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
             }
             else {
-                waitingPlayer[TIER.BRONZE] = player[socket.id];
+                waitingPlayer[TIER.BRONZE][waitingPlayer[TIER.BRONZE].length] = player[socket.id];
             }
         }
         else if (player[socket.id].tier === 'SILVER') {
@@ -120,15 +119,13 @@ matchingSpace.on('connection', function (socket) {
                 matchingResultData.playersId = {
                     playerA : player[socket.id].user_id,
                     playerB : opponentPlayer.user_id
-                }
+                };
                 matchingResultData.roomId = game.generateRoomId();
                 socket.emit('matchingResult', matchingResultData);
-                io.sockets.connected[opponentPlayer.socket_id].emit('matchingResult', matchingResultData);
-                socket.disconnect();
-                io.socket.connected[opponentPlayer.socket_id].disconnect();
+                matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
             }
             else {
-                waitingPlayer[TIER.SILVER] = player[socket.id];
+                waitingPlayer[TIER.SILVER][waitingPlayer[TIER.SILVER].length] = player[socket.id];
             }
         }
         else {
@@ -141,12 +138,10 @@ matchingSpace.on('connection', function (socket) {
                 };
                 matchingResultData.roomId = game.generateRoomId();
                 socket.emit('matchingResult', matchingResultData);
-                io.sockets.connected[opponentPlayer.socket_id].emit('matchingResult', matchingResultData);
-                socket.disconnect();
-                io.socket.connected[opponentPlayer.socket_id].disconnect();
+                matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
             }
             else {
-                waitingPlayer[TIER.GOLD] = player[socket.id];
+                waitingPlayer[TIER.GOLD][waitingPlayer[TIER.GOLD].length] = player[socket.id];
             }
         }
     });

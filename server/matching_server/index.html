@@ -24,14 +24,19 @@
                 conn.emit('ready', {msg: $('#readyBTn').val()});
                 return false;
             });
+            $('#gameStart').submit(function(){
+                conn.emit('gameStart', {msg: $('#gameStartBtn').val()});
+                return false;
+            });
         });
         conn.on('connect', function () {
 
             conn.on('authorized', function (data) {
                 console.log(data);
             });
-            conn.on('success-matching', function (data) {
+            conn.on('matchingResult', function (data) {
                 console.log(data);
+                conn.disconnect();
             })
             conn.on('disconnect', function (data) {
                 console.log("doesn't have authorization");
@@ -62,6 +67,10 @@
 </form>
 <form id = "ready" action = "">
     ready: <input type="text" id="readyBtn"><br>
+    <input type="submit" value="Submit">
+</form>
+<form id = "gameStart" action = "">
+    gameStart: <input type="text" id="gameStartBtn"><br>
     <input type="submit" value="Submit">
 </form>
 </body>
