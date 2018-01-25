@@ -7,6 +7,7 @@ const server = require('http').createServer(app);
 const io = require('socket.io').listen(server);
 let port = process.env.PORT || 3000;
 const moment =  require('moment');
+const matchingSpace = io.of('/matching');
 
 // DB module
 const mongo = require('mongodb');
@@ -18,22 +19,24 @@ const sessionManage = require('./redis_dao/session');
 
 // util
 const game = require('./util/matchingGame');
-
+let player = {};
+const TIER = {
+    BRONZE: 0,
+    SILVER: 1,
+    GOLD: 2
+};
+let waitingPlayer = [];
+waitingPlayer[TIER.BRONZE] = [];
+waitingPlayer[TIER.SILVER] = [];
+waitingPlayer[TIER.GOLD] = [];
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-let bronzeRoomUserList = [];
-let silverRoomUserList = [];
-let goldRoomUserList = [];
-let player = {};
-const matchingSpace = io.of('/matching');
-
 matchingSpace.on('connection', function (socket) {
-    //console.log(socket.id);
     socket.on('ack', function (data) {
-        let key = "session:" + data.session_token + ":" + data.userId;
+        let key = "session:" + data.session_token + ":" + data.sessionId;
         sessionManage.isValidSession(redisClient, key, function (isValidSession) {
             if (isValidSession) {
                 sessionManage.findSessionData(redisClient, key, function (value) {
@@ -51,14 +54,19 @@ matchingSpace.on('connection', function (socket) {
 
         mongoClient.connect(dbURL, function (err, db) {
             if (err) {
-                throw err;
+                console.log(err);
+                //todo send data
+                socket.emit('connect DB error', {});
+                socket.disconnect();
+                return;
             }
             let dbo = db.db('genie_ai');
-            let query = { user_id: data.gameId };
+            let query = { user_id: data.userId };
             dbo.collection('players').find(query).toArray(function (err, playerData) {
                 if (err) {
                     socket.emit('getData', { dataAccess : false });
-                    throw err;
+                    console.log(err);
+                    return;
                 }
                 player[socket.id] = playerData[0];
                 player[socket.id].socket_id = socket.id;
@@ -75,59 +83,72 @@ matchingSpace.on('connection', function (socket) {
             socket.emit('retryReady', { error: "connection DB is fail"});
             return;
         }
-        console.log(player[socket.id].user_id);
+
         socket.join(player[socket.id].tier, function () {
             matchingSpace.to(player[socket.id].tier).emit('entry', {
-                //todo sending data
+                entryUser: player[socket.id].user_id,
+                entryUserScore: player[socket.id].score,
+                entryUserTier: player[socket.id].tier
             });
         });
-
-        if (player[socket.id].tier === 'BRONZE') {
-            bronzeRoomUserList[bronzeRoomUserList.length] = player[socket.id];
-        }
-        else if (player[socket.id].tier === 'SILVER') {
-            silverRoomUserList[silverRoomUserList.length] = player[socket.id];
-        }
-        else if (player[socket.id].tier === 'GOLD') {
-            goldRoomUserList[goldRoomUserList.length] = player[socket.id];
-        }
-        console.log(io.sockets.adapter.rooms);
     });
 
-    // todo seperate
-    socket.on('disconnect', function (reason) {
-        console.log(reason);
-        socket.leave(player[socket.id].tier, function () {
-           matchingSpace.to(player[socket.id]).emit('leave', {
-               //todo sending data
-           });
-        });
-
-        //todo delete element of array with player array
-        // player[socket.id] 삭제
+    socket.on('gameStart', function () {
+        //todo modulation && 동시에 접속했을 때의 이슈 && 매칭이 실패했을 때의 이슈
         if (player[socket.id].tier === 'BRONZE') {
-            bronzeRoomUserList[bronzeRoomUserList.length] = player[socket.id];
+            if (waitingPlayer[TIER.BRONZE].length !== 0) {
+                let matchingResultData = {};
+                let opponentPlayer = waitingPlayer[TIER.BRONZE].shift();
+                matchingResultData.playersId = {
+                    playerA : player[socket.id].user_id,
+                    playerB : opponentPlayer.user_id
+                }
+                matchingResultData.roomId = game.generateRoomId();
+                socket.emit('matchingResult', matchingResultData);
+                io.sockets.connected[opponentPlayer.socket_id].emit('matchingResult', matchingResultData);
+                socket.disconnect();
+                io.socket.connected[opponentPlayer.socket_id].disconnect();
+            }
+            else {
+                waitingPlayer[TIER.BRONZE] = player[socket.id];
+            }
         }
         else if (player[socket.id].tier === 'SILVER') {
-            silverRoomUserList[silverRoomUserList.length] = player[socket.id];
+            if (waitingPlayer[TIER.SILVER].length !== 0) {
+                let matchingResultData = {};
+                let opponentPlayer = waitingPlayer[TIER.SILVER].shift();
+                matchingResultData.playersId = {
+                    playerA : player[socket.id].user_id,
+                    playerB : opponentPlayer.user_id
+                }
+                matchingResultData.roomId = game.generateRoomId();
+                socket.emit('matchingResult', matchingResultData);
+                io.sockets.connected[opponentPlayer.socket_id].emit('matchingResult', matchingResultData);
+                socket.disconnect();
+                io.socket.connected[opponentPlayer.socket_id].disconnect();
+            }
+            else {
+                waitingPlayer[TIER.SILVER] = player[socket.id];
+            }
         }
-        else if (player[socket.id].tier === 'GOLD') {
-            goldRoomUserList[goldRoomUserList.length] = player[socket.id];
+        else {
+            if (waitingPlayer[TIER.GOLD].length !== 0) {
+                let matchingResultData = {};
+                let opponentPlayer = waitingPlayer[TIER.GOLD].shift();
+                matchingResultData.playersId = {
+                    playerA: player[socket.id].user_id,
+                    playerB: opponentPlayer.user_id
+                };
+                matchingResultData.roomId = game.generateRoomId();
+                socket.emit('matchingResult', matchingResultData);
+                io.sockets.connected[opponentPlayer.socket_id].emit('matchingResult', matchingResultData);
+                socket.disconnect();
+                io.socket.connected[opponentPlayer.socket_id].disconnect();
+            }
+            else {
+                waitingPlayer[TIER.GOLD] = player[socket.id];
+            }
         }
-    });
-
-    socket.on('gameStart', function (data) {
-        //todo matching
-        socket.emit('matching', data);
-
-        socket.on('matchingAck', function (data) {
-            //todo matching data 비교 후 matching Success 후 disconnect
-            socket.emit('matchingResult', {
-                matching : true,
-                afterEvent : "disconnect"
-            });
-            socket.disconnect();
-        });
     });
 
     socket.on('sendMessage', function (msg) {
@@ -135,8 +156,24 @@ matchingSpace.on('connection', function (socket) {
             from: player[socket.id].user_id,
             message: msg.message
         });
-        console.log(player[socket.id]);
-    })
+    });
+
+    socket.on('disconnect', function (reason) {
+        //console.log(reason);
+        console.log(socket.id);
+        if (player[socket.id] !== null ) {
+            socket.leave(player[socket.id].tier, function () {
+                matchingSpace.to(player[socket.id].tier).emit('leave', {
+                    leaveUser: player[socket.id].user_id,
+                    leaveUserScore: player[socket.id].score,
+                    leaveUserTier: player[socket.id].tier
+                });
+                //delete element in player object
+                delete player[socket.id];
+                console.log(player);
+            });
+        }
+    });
 });
 
 server.listen(port, function () {

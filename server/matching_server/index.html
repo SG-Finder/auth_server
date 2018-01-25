@@ -17,7 +17,7 @@
             });
 
             $('#login').submit(function(){
-                conn.emit("ack", {session_token:"asdf", userId: $('#InputLogin').val()});
+                conn.emit("ack", {session_token:"asd", userId: $('#InputLogin').val(), sessionId: "gksxodnd007"});
                 return false;
             });
             $('#ready').submit(function(){
@@ -33,10 +33,13 @@
             conn.on('success-matching', function (data) {
                 console.log(data);
             })
-            conn.on('disconnect', function () {
+            conn.on('disconnect', function (data) {
                 console.log("doesn't have authorization");
             })
             conn.on('entry', function(data) {
+                console.log(data);
+            })
+            conn.on('leave', function (data) {
                 console.log(data);
             })
             conn.on('retryReady', function (data) {
