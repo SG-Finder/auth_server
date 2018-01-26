@@ -1,7 +1,7 @@
 // Core module
 const express = require('express');
 const app = express();
-const redis = require('redis')
+const redis = require('redis');
 const redisClient = redis.createClient(6379, '127.0.0.1');
 const server = require('http').createServer(app);
 const io = require('socket.io').listen(server);
