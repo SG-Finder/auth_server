@@ -1,4 +1,4 @@
-// core module
+// Core module
 const express = require('express');
 const app = express();
 const redis = require('redis')
@@ -14,10 +14,10 @@ const mongo = require('mongodb');
 const mongoClient = mongo.MongoClient;
 const dbURL = 'mongodb://127.0.0.1:27017/';
 
-// customizing module
+// Customizing module
 const sessionManage = require('./redis_dao/session');
 
-// util
+// Util
 const game = require('./util/matchingGame');
 let player = {};
 const TIER = {
@@ -55,7 +55,7 @@ matchingSpace.on('connection', function (socket) {
         mongoClient.connect(dbURL, function (err, db) {
             if (err) {
                 console.log(err);
-                //todo send data
+                //TODO send data
                 socket.emit('connect DB error', {});
                 socket.disconnect();
                 return;
@@ -78,7 +78,7 @@ matchingSpace.on('connection', function (socket) {
     });
 
     socket.on('ready', function (data) {
-        // todo delete event it is just testing event
+        //TODO delete event it is just testing event
         if (player[socket.id] == null) {
             socket.emit('retryReady', { error: "connection DB is fail"});
             return;
@@ -94,7 +94,7 @@ matchingSpace.on('connection', function (socket) {
     });
 
     socket.on('gameStart', function () {
-        //todo modulation && 동시에 접속했을 때의 이슈 && 매칭이 실패했을 때의 이슈
+        //TODO modulation && 동시에 접속했을 때의 이슈 && 매칭이 실패했을 때의 이슈
         if (player[socket.id].tier === 'BRONZE') {
             if (waitingPlayer[TIER.BRONZE].length !== 0) {
                 let matchingResultData = {};
@@ -103,7 +103,7 @@ matchingSpace.on('connection', function (socket) {
                     playerA : player[socket.id].user_id,
                     playerB : opponentPlayer.user_id
                 };
-                matchingResultData.roomId = game.generateRoomId();
+                matchingResultData.roomId = generateRoomId();
                 socket.emit('matchingResult', matchingResultData);
                 console.log(opponentPlayer.socket_id);
                 matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
@@ -120,8 +120,9 @@ matchingSpace.on('connection', function (socket) {
                     playerA : player[socket.id].user_id,
                     playerB : opponentPlayer.user_id
                 };
-                matchingResultData.roomId = game.generateRoomId();
+                matchingResultData.roomId = generateRoomId();
                 socket.emit('matchingResult', matchingResultData);
+                console.log(opponentPlayer.socket_id);
                 matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
             }
             else {
@@ -133,11 +134,12 @@ matchingSpace.on('connection', function (socket) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.GOLD].shift();
                 matchingResultData.playersId = {
-                    playerA: player[socket.id].user_id,
-                    playerB: opponentPlayer.user_id
+                    playerA : player[socket.id].user_id,
+                    playerB : opponentPlayer.user_id
                 };
-                matchingResultData.roomId = game.generateRoomId();
+                matchingResultData.roomId = generateRoomId();
                 socket.emit('matchingResult', matchingResultData);
+                console.log(opponentPlayer.socket_id);
                 matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
             }
             else {

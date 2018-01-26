@@ -29,7 +29,7 @@ exports.updateSession = function (redisClient, key, value) {
             console.log(err + ": updateSession function err");
         }
         else {
-            redisClient.expire(key, 1200);
+            redisClient.expire(key, 3600);
         }
     })
 };
