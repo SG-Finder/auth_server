@@ -37,6 +37,7 @@ app.get('/', function (req, res) {
 matchingSpace.on('connection', function (socket) {
     console.log("someone connects this server");
     socket.on('ack', function (data) {
+        console.log(data);
         //TODO BAD REQUEST EXCEPTION
         let key = "session:" + data.session_token + ":" + data.sessionId;
         sessionManage.isValidSession(redisClient, key, function (isValidSession) {
@@ -45,11 +46,14 @@ matchingSpace.on('connection', function (socket) {
                     let newSession = JSON.parse(value);
                     newSession.last_updated_at = moment().format("YYYY-MM-DDThh:mm:ss");
                     sessionManage.updateSession(redisClient, key, JSON.stringify(newSession));
-                    socket.emit('authorized', { permit: true });
+                    socket.emit('authorized', { permit : true });
                 });
             }
             else {
-                socket.emit('authorized', { permit: false });
+                socket.emit('authorized', {
+                    permit : false,
+                    afterEvent : "disconnect"
+                });
                 socket.disconnect();
             }
         });
@@ -58,7 +62,10 @@ matchingSpace.on('connection', function (socket) {
             if (err) {
                 console.log(err);
                 //TODO send data
-                socket.emit('connect DB error', {});
+                socket.emit('getData', {
+                    dataAccess : false,
+                    afterEvent : "disconnect"
+                });
                 socket.disconnect();
                 return;
             }
@@ -66,7 +73,10 @@ matchingSpace.on('connection', function (socket) {
             let query = { user_id: data.userId };
             dbo.collection('players').find(query).toArray(function (err, playerData) {
                 if (err) {
-                    socket.emit('getData', { dataAccess : false });
+                    socket.emit('getData', {
+                        dataAccess : false,
+                        afterEvent : "disconnect"
+                    });
                     console.log(err);
                     return;
                 }
@@ -97,6 +107,7 @@ matchingSpace.on('connection', function (socket) {
 
     socket.on('gameStart', function () {
         //TODO modulation && 동시에 접속했을 때의 이슈 && 매칭이 실패했을 때의 이슈
+        //TODO 매칭 결과 redis에 저장
         if (player[socket.id].tier === 'BRONZE') {
             if (waitingPlayer[TIER.BRONZE].length !== 0) {
                 let matchingResultData = {};
@@ -105,7 +116,8 @@ matchingSpace.on('connection', function (socket) {
                     playerA : player[socket.id].user_id,
                     playerB : opponentPlayer.user_id
                 };
-                matchingResultData.roomId = generateRoomId();
+                matchingResultData.roomId = game.generateRoomId();
+
                 socket.emit('matchingResult', matchingResultData);
                 console.log(opponentPlayer.socket_id);
                 matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
@@ -123,6 +135,7 @@ matchingSpace.on('connection', function (socket) {
                     playerB : opponentPlayer.user_id
                 };
                 matchingResultData.roomId = generateRoomId();
+
                 socket.emit('matchingResult', matchingResultData);
                 console.log(opponentPlayer.socket_id);
                 matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
@@ -140,9 +153,10 @@ matchingSpace.on('connection', function (socket) {
                     playerB : opponentPlayer.user_id
                 };
                 matchingResultData.roomId = generateRoomId();
+
                 socket.emit('matchingResult', matchingResultData);
-                console.log(opponentPlayer.socket_id);
                 matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
+                console.log(opponentPlayer.socket_id);
             }
             else {
                 waitingPlayer[TIER.GOLD][waitingPlayer[TIER.GOLD].length] = player[socket.id];

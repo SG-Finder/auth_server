@@ -16,6 +16,24 @@ exports.matchingGame = function (waitingPlayer, player, TIER, matchingSpace, soc
     }
 };
 
-generateRoomId = function () {
+exports.saveMatchingResultRedis = function(redisClient, matchingData) {
+
+};
+
+exports.isPresentGame = function (redisClient, matchingData) {
+
+};
+
+compareMatchingData = function (dataA, dataB) {
+    //TODO 데이터 비교
+    if (dataA === dataB) {
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+exports.generateRoomId = function () {
     return 1;
 };

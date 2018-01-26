@@ -37,7 +37,8 @@
             conn.on('matchingResult', function (data) {
                 console.log(data);
                 conn.disconnect();
-            })
+            });
+
             conn.on('disconnect', function (data) {
                 console.log("doesn't have authorization");
             })
@@ -53,6 +54,7 @@
             conn.on('receiveMessage', function (data) {
                 console.log(data.from + " : " + data.message);
             })
+            conn.on('')
         });
     </script>
 </head>
