@@ -35,7 +35,9 @@ app.get('/', function (req, res) {
 });
 
 matchingSpace.on('connection', function (socket) {
+    console.log("someone connects this server");
     socket.on('ack', function (data) {
+        //TODO BAD REQUEST EXCEPTION
         let key = "session:" + data.session_token + ":" + data.sessionId;
         sessionManage.isValidSession(redisClient, key, function (isValidSession) {
             if (isValidSession) {
@@ -157,8 +159,9 @@ matchingSpace.on('connection', function (socket) {
 
     socket.on('disconnect', function (reason) {
         //console.log(reason);
+        console.log('somenoe disconnect this server');
         console.log(socket.id);
-        if (player[socket.id] !== null ) {
+        if (player[socket.id] !== undefined ) {
             socket.leave(player[socket.id].tier, function () {
                 matchingSpace.to(player[socket.id].tier).emit('leave', {
                     leaveUser: player[socket.id].user_id,
