@@ -39,15 +39,54 @@ matchingSpace.on('connection', function (socket) {
     socket.on('ack', function (data) {
         console.log(data);
         //TODO BAD REQUEST EXCEPTION
-        let key = "session:" + data.session_token + ":" + data.sessionId;
+        let key = "session:" + data.session_token + ":" + data.userId;
+        let sessionFlag = false;
         sessionManage.isValidSession(redisClient, key, function (isValidSession) {
             if (isValidSession) {
                 sessionManage.findSessionData(redisClient, key, function (value) {
                     let newSession = JSON.parse(value);
                     newSession.last_updated_at = moment().format("YYYY-MM-DDThh:mm:ss");
                     sessionManage.updateSession(redisClient, key, JSON.stringify(newSession));
-                    socket.emit('authorized', { permit : true });
+                    socket.emit('authorized', {
+                        permit : true,
+                        afterEvent : "none"
+                    });
                 });
+
+                mongoClient.connect(dbURL, function (err, db) {
+                    if (err) {
+                        console.log(err);
+                        //TODO send data
+                        socket.emit('getData', {
+                            dataAccess : false,
+                            afterEvent : "disconnect"
+                        });
+                        socket.disconnect();
+                        return;
+                    }
+                    let dbo = db.db('genie_ai');
+                    let query = { user_id: data.userId };
+                    dbo.collection('players').find(query).toArray(function (err, playerData) {
+                        if (err) {
+                            socket.emit('getData', {
+                                dataAccess : false,
+                                afterEvent : "disconnect"
+                            });
+                            console.log(err);
+                            return;
+                        }
+                        player[socket.id] = playerData[0];
+                        console.log(playerData[0]);
+                        player[socket.id].socket_id = socket.id;
+                        db.close();
+                    });
+
+                    socket.emit('getData', {
+                        dataAccess : true,
+                        afterEvent : "ready"
+                    });
+                });
+
             }
             else {
                 socket.emit('authorized', {
@@ -55,38 +94,10 @@ matchingSpace.on('connection', function (socket) {
                     afterEvent : "disconnect"
                 });
                 socket.disconnect();
+                sessionFlag = false;
             }
         });
 
-        mongoClient.connect(dbURL, function (err, db) {
-            if (err) {
-                console.log(err);
-                //TODO send data
-                socket.emit('getData', {
-                    dataAccess : false,
-                    afterEvent : "disconnect"
-                });
-                socket.disconnect();
-                return;
-            }
-            let dbo = db.db('genie_ai');
-            let query = { user_id: data.userId };
-            dbo.collection('players').find(query).toArray(function (err, playerData) {
-                if (err) {
-                    socket.emit('getData', {
-                        dataAccess : false,
-                        afterEvent : "disconnect"
-                    });
-                    console.log(err);
-                    return;
-                }
-                player[socket.id] = playerData[0];
-                player[socket.id].socket_id = socket.id;
-                db.close();
-            });
-
-            socket.emit('getData', { dataAccess : true });
-        });
     });
 
     socket.on('ready', function (data) {
