@@ -1,6 +1,5 @@
 package com.finder.genie_ai.dao;
 
-import com.finder.genie_ai.enumdata.Gender;
 import com.finder.genie_ai.model.user.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -20,14 +19,13 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
     @Modifying(clearAutomatically = true)
     @Transactional
     @Query(value = "UPDATE users" +
-            "SET user_name = :userName, passwd :passwd, email = :email, birth = :birth, gender = :gender, introduce = :introduce " +
+            "SET user_name = :userName, passwd :passwd, email = :email, birth = :birth, introduce = :introduce " +
             "WHERE user_id = :userId", nativeQuery = true)
     int updateUserInfo(@Param("userId") String userId,
                        @Param("passwd") String passwd,
                        @Param("userName") String userName,
                        @Param("email") String email,
                        @Param("birth") LocalDate birth,
-                       @Param("gender") Gender gender,
                        @Param("introduce") String introduce);
 
     @Modifying
