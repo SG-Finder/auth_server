@@ -65,7 +65,7 @@ matchingSpace.on('connection', function (socket) {
                         return;
                     }
                     let dbo = db.db('genie_ai');
-                    let query = { user_id: data.userId };
+                    let query = { userId: data.userId };
                     dbo.collection('players').find(query).toArray(function (err, playerData) {
                         if (err) {
                             socket.emit('getData', {
@@ -109,7 +109,7 @@ matchingSpace.on('connection', function (socket) {
 
         socket.join(player[socket.id].tier, function () {
             matchingSpace.to(player[socket.id].tier).emit('entry', {
-                entryUser: player[socket.id].user_id,
+                entryUser: player[socket.id].userId,
                 entryUserScore: player[socket.id].score,
                 entryUserTier: player[socket.id].tier
             });
@@ -123,10 +123,7 @@ matchingSpace.on('connection', function (socket) {
             if (waitingPlayer[TIER.BRONZE].length !== 0) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.BRONZE].shift();
-                matchingResultData.playersId = {
-                    playerA : player[socket.id].user_id,
-                    playerB : opponentPlayer.user_id
-                };
+                matchingResultData.playersId = [player[socket.id].userId, opponentPlayer.userId];
                 matchingResultData.roomId = game.generateRoomId();
 
                 socket.emit('matchingResult', matchingResultData);
@@ -141,10 +138,7 @@ matchingSpace.on('connection', function (socket) {
             if (waitingPlayer[TIER.SILVER].length !== 0) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.SILVER].shift();
-                matchingResultData.playersId = {
-                    playerA : player[socket.id].user_id,
-                    playerB : opponentPlayer.user_id
-                };
+                matchingResultData.playersId = [player[socket.id].userId, opponentPlayer.userId];
                 matchingResultData.roomId = generateRoomId();
 
                 socket.emit('matchingResult', matchingResultData);
@@ -159,10 +153,7 @@ matchingSpace.on('connection', function (socket) {
             if (waitingPlayer[TIER.GOLD].length !== 0) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.GOLD].shift();
-                matchingResultData.playersId = {
-                    playerA : player[socket.id].user_id,
-                    playerB : opponentPlayer.user_id
-                };
+                matchingResultData.playersId = [player[socket.id].userId, opponentPlayer.userId];
                 matchingResultData.roomId = generateRoomId();
 
                 socket.emit('matchingResult', matchingResultData);
@@ -177,7 +168,7 @@ matchingSpace.on('connection', function (socket) {
 
     socket.on('sendMessage', function (msg) {
         matchingSpace.to(player[socket.id].tier).emit('receiveMessage', {
-            from: player[socket.id].user_id,
+            from: player[socket.id].userId,
             message: msg.message
         });
     });
@@ -189,7 +180,7 @@ matchingSpace.on('connection', function (socket) {
         if (player[socket.id] !== undefined ) {
             socket.leave(player[socket.id].tier, function () {
                 matchingSpace.to(player[socket.id].tier).emit('leave', {
-                    leaveUser: player[socket.id].user_id,
+                    leaveUser: player[socket.id].userId,
                     leaveUserScore: player[socket.id].score,
                     leaveUserTier: player[socket.id].tier
                 });
