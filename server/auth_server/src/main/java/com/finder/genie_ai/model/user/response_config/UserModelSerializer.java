@@ -22,7 +22,6 @@ public class UserModelSerializer extends JsonSerializer<UserModel> {
         jsonGenerator.writeStringField("userName", userModel.getUserName());
         jsonGenerator.writeStringField("email", userModel.getEmail());
         jsonGenerator.writeStringField("birth", userModel.getBirth().toString());
-        jsonGenerator.writeStringField("gender", userModel.getGender().toString());
         jsonGenerator.writeStringField("introduce", userModel.getIntroduce());
         jsonGenerator.writeEndObject();
     }

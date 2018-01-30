@@ -2,8 +2,15 @@ package com.finder.genie_ai.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finder.genie_ai.dao.PlayerRepository;
 import com.finder.genie_ai.dao.UserRepository;
+import com.finder.genie_ai.model.game.Item.Item;
+import com.finder.genie_ai.model.game.history.History;
+import com.finder.genie_ai.model.game.player.Players;
 import com.finder.genie_ai.exception.*;
+import com.finder.genie_ai.enumdata.Tier;
+import com.finder.genie_ai.model.game.weapon.Gun;
+import com.finder.genie_ai.model.game.weapon.Knife;
 import com.finder.genie_ai.model.session.SessionModel;
 import com.finder.genie_ai.model.user.UserModel;
 import com.finder.genie_ai.model.user.command.UserChangeInfoCommand;
@@ -36,6 +43,8 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private PlayerRepository playerRepository;
+    @Autowired
     private ObjectMapper mapper;
     @Autowired
     private SessionTokenRedisRepository sessionTokenRedisRepository;
@@ -47,6 +56,7 @@ public class UserController {
     public @ResponseBody JsonObject signupUser(@RequestBody @Valid UserSignUpCommand command,
                                                BindingResult bindingResult) throws JsonProcessingException, UnsupportedEncodingException {
         if (bindingResult.hasErrors()) {
+            System.out.println(command.toString());
             throw new BadRequestException("invalid parameter form");
         }
 
@@ -56,6 +66,8 @@ public class UserController {
         }
         else {
             UserModel user = new UserModel();
+            Players player = new Players();
+
             String salt = TokenGenerator.generateSaltValue();
 
             user.setUserId(command.getUserId());
@@ -65,10 +77,20 @@ public class UserController {
             user.setUserName(command.getUserName());
             user.setEmail(command.getEmail());
             user.setBirth(LocalDate.parse(command.getBirth()));
-            user.setGender(command.getGender());
             user.setIntroduce(command.getIntroduce());
 
-            return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(userRepository.save(user)));
+            user = userRepository.save(user);
+            player.setId(Integer.toString(user.getId()));
+            player.setUserId(command.getUserId());
+            player.setTier(Tier.BRONZE);
+            player.setScore(0);
+            player.setHistory(new History(0, 0, 0, 0));
+            player.setRank(-1);
+            player.setItem(new Item(new Knife(), new Gun()));
+            player.setPoint(0);
+            playerRepository.save(player);
+
+            return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(user));
         }
 
     }
@@ -166,12 +188,14 @@ public class UserController {
             throw new NotFoundException("Doesn't find user by userId. Please register first.");
         }
 
-        int resCount = userRepository.updateUserInfo(userId,
+        int resCount = userRepository.updateUserInfo(
+                userId,
                 bCryptPasswordEncoder.encode(command.getPasswd() + user.get().getSalt()),
-                command.getUserName(), command.getEmail(),
+                command.getUserName(),
+                command.getEmail(),
                 LocalDate.parse(command.getBirth()),
-                command.getGender(),
                 command.getIntroduce());
+
         if (resCount == 0) {
             throw new ServerException("doesn't execute query");
         }
@@ -195,6 +219,8 @@ public class UserController {
         sessionTokenRedisRepository.updateSessionToken(token, userId, mapper.writeValueAsString(sessionModel));
 
         userRepository.deleteByUserId(userId);
+        playerRepository.deleteByUserId(userId);
+        sessionTokenRedisRepository.deleteSession(token, userId);
     }
 
 }
