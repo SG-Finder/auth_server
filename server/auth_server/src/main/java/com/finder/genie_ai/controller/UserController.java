@@ -4,13 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finder.genie_ai.dao.PlayerRepository;
 import com.finder.genie_ai.dao.UserRepository;
-import com.finder.genie_ai.model.game.Item.Item;
-import com.finder.genie_ai.model.game.history.History;
-import com.finder.genie_ai.model.game.player.Players;
+import com.finder.genie_ai.model.game.player.PlayerModel;
 import com.finder.genie_ai.exception.*;
-import com.finder.genie_ai.enumdata.Tier;
-import com.finder.genie_ai.model.game.weapon.Gun;
-import com.finder.genie_ai.model.game.weapon.Knife;
+import com.finder.genie_ai.model.game.player.command.PlayerRegisterCommand;
 import com.finder.genie_ai.model.session.SessionModel;
 import com.finder.genie_ai.model.user.UserModel;
 import com.finder.genie_ai.model.user.command.UserChangeInfoCommand;
@@ -66,8 +62,6 @@ public class UserController {
         }
         else {
             UserModel user = new UserModel();
-            Players player = new Players();
-
             String salt = TokenGenerator.generateSaltValue();
 
             user.setUserId(command.getUserId());
@@ -80,19 +74,27 @@ public class UserController {
             user.setIntroduce(command.getIntroduce());
 
             user = userRepository.save(user);
-            player.setId(Integer.toString(user.getId()));
-            player.setUserId(command.getUserId());
-            player.setTier(Tier.BRONZE);
-            player.setScore(0);
-            player.setHistory(new History(0, 0, 0, 0));
-            player.setRank(-1);
-            player.setItem(new Item(new Knife(), new Gun()));
-            player.setPoint(0);
-            playerRepository.save(player);
 
             return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(user));
         }
 
+    }
+
+    @Transactional
+    @RequestMapping(value = "/register/game")
+    public @ResponseBody JsonObject registerPlayer(@RequestHeader(name = "session-token") String token,
+                                                   @RequestHeader(name = "userId") String userId,
+                                                   @RequestBody @Valid PlayerRegisterCommand command,
+                                                   BindingResult bindingResult) throws JsonProcessingException {
+        if (bindingResult.hasErrors()) {
+            throw new BadRequestException("invalid parameter form");
+        }
+        //TODO check duplicated nickname
+        PlayerModel player = new PlayerModel();
+        player.setNickname(command.getNickname());
+        player.setUserId(userRepository.findByUserId(userId).get());
+
+        return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(player));
     }
 
     @RequestMapping(value = "/signin", method = RequestMethod.POST)
@@ -218,8 +220,7 @@ public class UserController {
         SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
         sessionTokenRedisRepository.updateSessionToken(token, userId, mapper.writeValueAsString(sessionModel));
 
-        userRepository.deleteByUserId(userId);
-        playerRepository.deleteByUserId(userId);
+        userRepository.deleteByUserId(userId);;
         sessionTokenRedisRepository.deleteSession(token, userId);
     }
 

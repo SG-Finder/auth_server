@@ -1,13 +1,14 @@
 package com.finder.genie_ai.dao;
 
-import com.finder.genie_ai.model.game.player.Players;
+import com.finder.genie_ai.model.game.player.PlayerModel;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PlayerRepository extends MongoRepository<Players, String> {
+public interface PlayerRepository extends JpaRepository<PlayerModel, Integer> {
 
-    Players findByUserId(String userId);
-    int deleteByUserId(String userId);
+    PlayerModel findByNickname(String nickname);
+    int deleteByNickname(String nickname);
 
 }

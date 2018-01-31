@@ -5,54 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9e621be0-8e49-4c0d-b07b-1e2bf16d61a1" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/configs/MongoDBConfig.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/PlayerRepository.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/enumdata/Tier.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/Item/Item.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/history/History.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/player/Players.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/weapon/Gun.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/weapon/Knife.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/weapon/Weapon.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/configs/MongoDBConfig.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/configs/RedisConfig.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/GameController.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/GeineController.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/PlayerController.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/ShopController.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dao/PlayerRepository.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/enumdata/Tier.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/exception/BadRequestException.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/exception/BaseException.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/exception/DuplicateException.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/exception/GenieAiExceptionHandler.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/exception/NotFoundException.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/exception/ServerException.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/exception/UnauthorizedException.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/error/ErrorModel.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/Item/Item.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/history/History.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/player/Players.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/weapon/Gun.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/weapon/Knife.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/weapon/Weapon.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/session/SessionModel.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/session/json_config/SessionUserInfoSerializer.java" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/redis_dao/SessionTokenRedisRepository.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/pom.xml" afterPath="$PROJECT_DIR$/../auth_server/pom.xml" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/controller/UserController.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/controller/UserController.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/UserRepository.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/UserRepository.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/enumdata/Gender.java" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/UserModel.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/UserModel.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/command/UserChangeInfoCommand.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/command/UserChangeInfoCommand.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/command/UserSignInCommand.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/command/UserSignInCommand.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/command/UserSignUpCommand.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/command/UserSignUpCommand.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/response_config/UserModelSerializer.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/response_config/UserModelSerializer.java" />
-      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/resources/application.properties" afterPath="$PROJECT_DIR$/../auth_server/src/main/resources/application.properties" />
-      <change beforePath="$PROJECT_DIR$/../main_server/pom.xml" afterPath="$PROJECT_DIR$/../main_server/pom.xml" />
-      <change beforePath="$PROJECT_DIR$/../main_server/src/main/resources/application.properties" afterPath="$PROJECT_DIR$/../main_server/src/main/resources/application.properties" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/app.js" afterPath="$PROJECT_DIR$/app.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -69,8 +22,8 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1038">
-              <caret line="89" column="13" lean-forward="true" selection-start-line="89" selection-start-column="13" selection-end-line="89" selection-end-column="13" />
+            <state relative-caret-position="475">
+              <caret line="186" column="49" lean-forward="false" selection-start-line="186" selection-start-column="49" selection-end-line="186" selection-end-column="49" />
               <folding />
             </state>
           </provider>
@@ -79,7 +32,7 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="19">
+            <state relative-caret-position="266">
               <caret line="14" column="38" lean-forward="false" selection-start-line="14" selection-start-column="38" selection-end-line="14" selection-end-column="38" />
               <folding />
             </state>
@@ -89,7 +42,7 @@
       <file leaf-file-name="package-lock.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/package-lock.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="19">
+            <state relative-caret-position="703">
               <caret line="37" column="10" lean-forward="false" selection-start-line="37" selection-start-column="10" selection-end-line="37" selection-end-column="10" />
               <folding />
             </state>
@@ -238,7 +191,6 @@
     </navigator>
     <panes>
       <pane id="Scope" />
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -260,6 +212,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -304,12 +257,13 @@
       <workItem from="1516925448839" duration="21682000" />
       <workItem from="1516957828111" duration="3977000" />
       <workItem from="1517186118291" duration="11734000" />
-      <workItem from="1517268041475" duration="11114000" />
+      <workItem from="1517268041475" duration="11722000" />
+      <workItem from="1517354846414" duration="3000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="159895000" />
+    <option name="totallyTimeSpent" value="160506000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1912" y="-8" width="1936" height="1096" extended-state="7" />
@@ -656,7 +610,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19">
+        <state relative-caret-position="266">
           <caret line="14" column="38" lean-forward="false" selection-start-line="14" selection-start-column="38" selection-end-line="14" selection-end-column="38" />
           <folding />
         </state>
@@ -664,7 +618,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/package-lock.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19">
+        <state relative-caret-position="703">
           <caret line="37" column="10" lean-forward="false" selection-start-line="37" selection-start-column="10" selection-end-line="37" selection-end-column="10" />
           <folding />
         </state>
@@ -672,8 +626,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1038">
-          <caret line="89" column="13" lean-forward="true" selection-start-line="89" selection-start-column="13" selection-end-line="89" selection-end-column="13" />
+        <state relative-caret-position="475">
+          <caret line="186" column="49" lean-forward="false" selection-start-line="186" selection-start-column="49" selection-end-line="186" selection-end-column="49" />
           <folding />
         </state>
       </provider>

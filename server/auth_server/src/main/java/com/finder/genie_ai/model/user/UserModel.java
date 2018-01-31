@@ -1,5 +1,6 @@
 package com.finder.genie_ai.model.user;
 
+import com.finder.genie_ai.model.game.player.PlayerModel;
 import lombok.Data;
 
 import javax.persistence.*;
