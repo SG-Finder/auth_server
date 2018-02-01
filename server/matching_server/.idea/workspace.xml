@@ -5,6 +5,43 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9e621be0-8e49-4c0d-b07b-1e2bf16d61a1" name="Default" comment="">
+      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/HistoryRepository.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/ItemRepository.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dto/PlayerDTO.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/enumdata/Weapon.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dao/HistoryRepository.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dao/ItemRepository.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dao/UserRepository.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dto/PlayerDTO.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/enumdata/Weapon.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/Item/ItemModel.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/history/HistoryModel.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/player/PlayerModel.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/user/UserModel.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/user/command/UserChangeInfoCommand.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/user/command/UserSignInCommand.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/user/command/UserSignUpCommand.java" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/user/response_config/UserModelSerializer.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/pom.xml" afterPath="$PROJECT_DIR$/../auth_server/pom.xml" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/controller/UserController.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/controller/UserController.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/PlayerRepository.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/PlayerRepository.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/exception/BaseException.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/exception/BaseException.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/Item/ItemModel.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/Item/ItemModel.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/history/HistoryModel.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/history/HistoryModel.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/player/PlayerModel.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/player/PlayerModel.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/game/player/response_config/PlayerModelSerializer.java" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/UserModel.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/UserModel.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/resources/application.properties" afterPath="$PROJECT_DIR$/../auth_server/src/main/resources/application.properties" />
+      <change beforePath="$PROJECT_DIR$/../main_server/pom.xml" afterPath="$PROJECT_DIR$/../main_server/pom.xml" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/GameController.java" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/GameController.java" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dao/PlayerRepository.java" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dao/PlayerRepository.java" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/Item/Item.java" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/history/History.java" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/player/Players.java" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/weapon/Gun.java" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/weapon/Knife.java" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/model/game/weapon/Weapon.java" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/resources/application.properties" afterPath="$PROJECT_DIR$/../main_server/src/main/resources/application.properties" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -22,7 +59,7 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="475">
+            <state relative-caret-position="291">
               <caret line="186" column="49" lean-forward="false" selection-start-line="186" selection-start-column="49" selection-end-line="186" selection-end-column="49" />
               <folding />
             </state>
@@ -191,6 +228,7 @@
     </navigator>
     <panes>
       <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -212,7 +250,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -258,12 +295,13 @@
       <workItem from="1516957828111" duration="3977000" />
       <workItem from="1517186118291" duration="11734000" />
       <workItem from="1517268041475" duration="11722000" />
-      <workItem from="1517354846414" duration="3000" />
+      <workItem from="1517354846414" duration="596000" />
+      <workItem from="1517470161730" duration="7000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="160506000" />
+    <option name="totallyTimeSpent" value="161106000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1912" y="-8" width="1936" height="1096" extended-state="7" />
@@ -626,7 +664,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="475">
+        <state relative-caret-position="291">
           <caret line="186" column="49" lean-forward="false" selection-start-line="186" selection-start-column="49" selection-end-line="186" selection-end-column="49" />
           <folding />
         </state>

@@ -1,7 +1,6 @@
 package com.finder.genie_ai.exception;
 
 public class BaseException extends RuntimeException {
-
     private int statusCode;
 
     public BaseException(int statusCode) {

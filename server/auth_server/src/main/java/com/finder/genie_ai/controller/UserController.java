@@ -2,8 +2,14 @@ package com.finder.genie_ai.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finder.genie_ai.dao.HistoryRepository;
+import com.finder.genie_ai.dao.ItemRepository;
 import com.finder.genie_ai.dao.PlayerRepository;
 import com.finder.genie_ai.dao.UserRepository;
+import com.finder.genie_ai.dto.PlayerDTO;
+import com.finder.genie_ai.enumdata.Weapon;
+import com.finder.genie_ai.model.game.Item.ItemModel;
+import com.finder.genie_ai.model.game.history.HistoryModel;
 import com.finder.genie_ai.model.game.player.PlayerModel;
 import com.finder.genie_ai.exception.*;
 import com.finder.genie_ai.model.game.player.command.PlayerRegisterCommand;
@@ -40,6 +46,10 @@ public class UserController {
     private UserRepository userRepository;
     @Autowired
     private PlayerRepository playerRepository;
+    @Autowired
+    private ItemRepository itemRepository;
+    @Autowired
+    private HistoryRepository historyRepository;
     @Autowired
     private ObjectMapper mapper;
     @Autowired
@@ -81,20 +91,62 @@ public class UserController {
     }
 
     @Transactional
-    @RequestMapping(value = "/register/game")
-    public @ResponseBody JsonObject registerPlayer(@RequestHeader(name = "session-token") String token,
+    @RequestMapping(value = "/register/game", method = RequestMethod.POST, produces = "application/json")
+    public @ResponseBody PlayerDTO registerPlayer(@RequestHeader(name = "session-token") String token,
                                                    @RequestHeader(name = "userId") String userId,
                                                    @RequestBody @Valid PlayerRegisterCommand command,
                                                    BindingResult bindingResult) throws JsonProcessingException {
+        if (!sessionTokenRedisRepository.isSessionValid(token, userId)) {
+            throw new UnauthorizedException();
+        }
+
         if (bindingResult.hasErrors()) {
             throw new BadRequestException("invalid parameter form");
         }
-        //TODO check duplicated nickname
+
+        // check duplicated nickname
+        if (playerRepository.findByNickname(command.getNickname()).isPresent()) {
+            throw new DuplicateException("already exist nickname");
+        }
+
         PlayerModel player = new PlayerModel();
         player.setNickname(command.getNickname());
         player.setUserId(userRepository.findByUserId(userId).get());
+        player = playerRepository.save(player);
 
-        return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(player));
+        ItemModel knife = new ItemModel();
+        knife.setPlayerId(player);
+        knife.setName(Weapon.KNIFE);
+        knife.setDamage(50);
+        knife.setPrice(100);
+        knife.setUsableCount(0);
+        knife = itemRepository.save(knife);
+
+        ItemModel gun = new ItemModel();
+        gun.setPlayerId(player);
+        gun.setName(Weapon.GUN);
+        gun.setDamage(50);
+        gun.setPrice(100);
+        gun.setUsableCount(0);
+        gun = itemRepository.save(gun);
+
+        HistoryModel history = new HistoryModel();
+        history.setPlayerId(player);
+        history = historyRepository.save(history);
+
+        System.out.println(player.toString());
+
+        return new PlayerDTO(player.getNickname(),
+                player.getTier(),
+                player.getScore(),
+                history.getWin(),
+                history.getLose(),
+                history.getOneShot(),
+                history.getFinder(),
+                history.getLastWeekRank(),
+                knife.getUsableCount(),
+                gun.getUsableCount(),
+                player.getPoint());
     }
 
     @RequestMapping(value = "/signin", method = RequestMethod.POST)

@@ -102,12 +102,6 @@
             <version>5.0.0</version>
         </dependency>
 
-		<!-- mongo db -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-mongodb</artifactId>
-		</dependency>
-
 		<!-- lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
