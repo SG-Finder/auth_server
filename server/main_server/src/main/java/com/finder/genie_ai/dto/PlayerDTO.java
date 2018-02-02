@@ -21,22 +21,10 @@ public class PlayerDTO {
     @SerializedName("score")
     private int score;
 
-    @SerializedName("win")
-    private int win;
+    @SerializedName("history")
+    private HistoryDTO history;
 
-    @SerializedName("lose")
-    private int lose;
-
-    @SerializedName("oneShot")
-    private int oneShot;
-
-    @SerializedName("finder")
-    private int finder;
-
-    @SerializedName("lastWeekRank")
-    private int lastWeekRank;
-
-    @SerializedName("weapons")
+    @SerializedName("weapon")
     private List<Weapon> weapons;
 
     @SerializedName("point")

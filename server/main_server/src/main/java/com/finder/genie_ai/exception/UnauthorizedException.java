@@ -12,4 +12,8 @@ public class UnauthorizedException extends BaseException {
         super(HttpStatus.UNAUTHORIZED.value(), MESSAGE);
     }
 
+    public UnauthorizedException(String message) {
+        super(HttpStatus.UNAUTHORIZED.value(), message);
+    }
+
 }

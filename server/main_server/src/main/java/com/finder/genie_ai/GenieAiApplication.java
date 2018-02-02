@@ -11,7 +11,9 @@ import org.springframework.context.annotation.Configuration;
 public class GenieAiApplication {
 
 	public static void main(String[] args) {
+		System.getProperties().put("server.port", 8081);
 		SpringApplication.run(GenieAiApplication.class, args);
 	}
+
 }
 

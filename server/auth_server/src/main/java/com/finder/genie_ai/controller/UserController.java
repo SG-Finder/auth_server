@@ -3,7 +3,6 @@ package com.finder.genie_ai.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finder.genie_ai.dao.HistoryRepository;
-import com.finder.genie_ai.dao.WeaponRepository;
 import com.finder.genie_ai.dao.PlayerRepository;
 import com.finder.genie_ai.dao.UserRepository;
 import com.finder.genie_ai.dto.HistoryDTO;
@@ -21,7 +20,6 @@ import com.finder.genie_ai.model.user.command.UserSignUpCommand;
 import com.finder.genie_ai.redis_dao.SessionTokenRedisRepository;
 import com.finder.genie_ai.util.TokenGenerator;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,20 +41,29 @@ import java.util.Optional;
 @RequestMapping(value = "/user")
 public class UserController {
 
-    @Autowired
     private UserRepository userRepository;
-    @Autowired
     private PlayerRepository playerRepository;
-    @Autowired
     private HistoryRepository historyRepository;
-    @Autowired
     private ObjectMapper mapper;
-    @Autowired
     private SessionTokenRedisRepository sessionTokenRedisRepository;
-    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final ModelMapper modelMapper = new ModelMapper();
+
+    @Autowired
+    public UserController(UserRepository userRepository,
+                          PlayerRepository playerRepository,
+                          HistoryRepository historyRepository,
+                          SessionTokenRedisRepository sessionTokenRedisRepository,
+                          ObjectMapper mapper,
+                          BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userRepository = userRepository;
+        this.playerRepository = playerRepository;
+        this.historyRepository = historyRepository;
+        this.sessionTokenRedisRepository = sessionTokenRedisRepository;
+        this.mapper = mapper;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
 
     @Transactional
@@ -67,7 +74,7 @@ public class UserController {
             System.out.println(command.toString());
             throw new BadRequestException("invalid parameter form");
         }
-
+        System.out.println(command.toString());
         Optional<UserModel> userModel = userRepository.findByUserId(command.getUserId());
         if (userModel.isPresent()) {
             throw new DuplicateException("already exist userId");

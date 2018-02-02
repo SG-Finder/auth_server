@@ -13,6 +13,4 @@ public interface PlayerRepository extends JpaRepository<PlayerModel, Integer> {
     int deleteByUserId(String userId);
     int deleteByNickname(String nickname);
 
-    //TODO make query for taking item
-
 }
