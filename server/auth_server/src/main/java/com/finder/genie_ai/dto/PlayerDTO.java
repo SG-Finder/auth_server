@@ -2,6 +2,7 @@ package com.finder.genie_ai.dto;
 
 import com.finder.genie_ai.enumdata.Tier;
 import com.finder.genie_ai.enumdata.Weapon;
+import com.finder.genie_ai.model.game.history.HistoryModel;
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,22 +22,10 @@ public class PlayerDTO {
     @SerializedName("score")
     private int score;
 
-    @SerializedName("win")
-    private int win;
+    @SerializedName("history")
+    private HistoryDTO history;
 
-    @SerializedName("lose")
-    private int lose;
-
-    @SerializedName("oneShot")
-    private int oneShot;
-
-    @SerializedName("finder")
-    private int finder;
-
-    @SerializedName("lastWeekRank")
-    private int lastWeekRank;
-
-    @SerializedName("weapons")
+    @SerializedName("weapon")
     private List<Weapon> weapons;
 
     @SerializedName("point")

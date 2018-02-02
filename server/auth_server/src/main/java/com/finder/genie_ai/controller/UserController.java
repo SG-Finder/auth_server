@@ -6,7 +6,9 @@ import com.finder.genie_ai.dao.HistoryRepository;
 import com.finder.genie_ai.dao.WeaponRepository;
 import com.finder.genie_ai.dao.PlayerRepository;
 import com.finder.genie_ai.dao.UserRepository;
+import com.finder.genie_ai.dto.HistoryDTO;
 import com.finder.genie_ai.dto.PlayerDTO;
+import com.finder.genie_ai.dto.UserDTO;
 import com.finder.genie_ai.model.game.history.HistoryModel;
 import com.finder.genie_ai.model.game.player.PlayerModel;
 import com.finder.genie_ai.exception.*;
@@ -21,6 +23,7 @@ import com.finder.genie_ai.util.TokenGenerator;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
@@ -45,8 +48,6 @@ public class UserController {
     @Autowired
     private PlayerRepository playerRepository;
     @Autowired
-    private WeaponRepository weaponRepository;
-    @Autowired
     private HistoryRepository historyRepository;
     @Autowired
     private ObjectMapper mapper;
@@ -55,9 +56,12 @@ public class UserController {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    private final ModelMapper modelMapper = new ModelMapper();
+
+
     @Transactional
     @RequestMapping(value = "/signup", method = RequestMethod.POST, produces = "application/json")
-    public @ResponseBody JsonObject signupUser(@RequestBody @Valid UserSignUpCommand command,
+    public @ResponseBody UserDTO signupUser(@RequestBody @Valid UserSignUpCommand command,
                                                BindingResult bindingResult) throws JsonProcessingException, UnsupportedEncodingException {
         if (bindingResult.hasErrors()) {
             System.out.println(command.toString());
@@ -82,8 +86,9 @@ public class UserController {
             user.setIntroduce(command.getIntroduce());
 
             user = userRepository.save(user);
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
 
-            return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(user));
+            return userDTO;
         }
 
     }
@@ -116,16 +121,12 @@ public class UserController {
         history.setPlayerId(player);
         history = historyRepository.save(history);
 
-        System.out.println(player.toString());
+        HistoryDTO historyDTO = modelMapper.map(history, HistoryDTO.class);
 
         return new PlayerDTO(player.getNickname(),
                 player.getTier(),
                 player.getScore(),
-                history.getWin(),
-                history.getLose(),
-                history.getOneShot(),
-                history.getFinder(),
-                history.getLastWeekRank(),
+                historyDTO,
                 null,
                 player.getPoint());
     }
@@ -185,7 +186,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody JsonObject getUserInfo(@PathVariable("userId") String userId,
+    public @ResponseBody UserDTO getUserInfo(@PathVariable("userId") String userId,
                                                 @RequestHeader(name = "session-token") String token,
                                                 @RequestHeader(name = "userId") String activeUserId,
                                                 HttpServletRequest request) throws JsonProcessingException, UnsupportedEncodingException {
@@ -201,11 +202,13 @@ public class UserController {
                             .findByUserId(userId)
                             .orElseThrow(() -> new NotFoundException("Doesn't find user by userId"));
 
-        return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(user));
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+
+        return userDTO;
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.PUT, produces = "application/json")
-    public @ResponseBody JsonObject updateUserInfo(@PathVariable("userId") String userId,
+    public @ResponseBody UserDTO updateUserInfo(@PathVariable("userId") String userId,
                                                    @RequestBody UserChangeInfoCommand command,
                                                    @RequestHeader(name = "session-token") String token,
                                                    @RequestHeader(name = "userId") String activeUserId,
@@ -235,7 +238,13 @@ public class UserController {
             throw new ServerException("doesn't execute query");
         }
 
-        return (JsonObject) new JsonParser().parse(mapper.writeValueAsString(userRepository.findByUserId(userId).get()));
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserName(command.getUserName());
+        userDTO.setEmail(command.getEmail());
+        userDTO.setBirth(LocalDate.parse(command.getBirth()));
+        userDTO.setIntroduce(command.getIntroduce());
+
+        return userDTO;
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
