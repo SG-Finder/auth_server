@@ -119,19 +119,26 @@ matchingSpace.on('connection', function (socket) {
     socket.on('gameStart', function () {
         //TODO modulation && 동시에 접속했을 때의 이슈 && 매칭이 실패했을 때의 이슈
         //TODO 매칭 결과 redis에 저장
+        //let timeoutBronzeMatching;
         if (player[socket.id].tier === 'BRONZE') {
             if (waitingPlayer[TIER.BRONZE].length !== 0) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.BRONZE].shift();
                 matchingResultData.playersId = [player[socket.id].userId, opponentPlayer.userId];
                 matchingResultData.roomId = game.generateRoomId();
-
                 socket.emit('matchingResult', matchingResultData);
                 console.log(opponentPlayer.socket_id);
                 matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
+                //clearTimeout(timeoutBronzeMatching);
             }
             else {
                 waitingPlayer[TIER.BRONZE][waitingPlayer[TIER.BRONZE].length] = player[socket.id];
+                // timeoutBronzeMatching = setTimeout(function () {
+                //     socket.emit('matchingResult', {
+                //         matchingResult: 'fail'
+                //     });
+                //     waitingPlayer[TIER.BRONZE].shift();
+                // }, 300000)
             }
         }
         else if (player[socket.id].tier === 'SILVER') {

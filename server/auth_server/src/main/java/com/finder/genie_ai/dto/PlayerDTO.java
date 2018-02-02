@@ -1,9 +1,12 @@
 package com.finder.genie_ai.dto;
 
 import com.finder.genie_ai.enumdata.Tier;
+import com.finder.genie_ai.enumdata.Weapon;
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -33,11 +36,8 @@ public class PlayerDTO {
     @SerializedName("lastWeekRank")
     private int lastWeekRank;
 
-    @SerializedName("knife")
-    private int knife;
-
-    @SerializedName("gun")
-    private int gun;
+    @SerializedName("weapons")
+    private List<Weapon> weapons;
 
     @SerializedName("point")
     private int point;

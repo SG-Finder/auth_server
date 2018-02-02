@@ -23,7 +23,7 @@ public class HistoryModel {
     private int finder;
     @Column(name = "last_week_rank", nullable = false)
     private int lastWeekRank;
-    @ManyToOne
+    @OneToOne(targetEntity = PlayerModel.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "player_id", foreignKey = @ForeignKey(name = "FK_History_Players"), nullable = false)
     private PlayerModel playerId;
 

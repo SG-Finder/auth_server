@@ -3,12 +3,10 @@ package com.finder.genie_ai.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finder.genie_ai.dao.HistoryRepository;
-import com.finder.genie_ai.dao.ItemRepository;
+import com.finder.genie_ai.dao.WeaponRepository;
 import com.finder.genie_ai.dao.PlayerRepository;
 import com.finder.genie_ai.dao.UserRepository;
 import com.finder.genie_ai.dto.PlayerDTO;
-import com.finder.genie_ai.enumdata.Weapon;
-import com.finder.genie_ai.model.game.Item.ItemModel;
 import com.finder.genie_ai.model.game.history.HistoryModel;
 import com.finder.genie_ai.model.game.player.PlayerModel;
 import com.finder.genie_ai.exception.*;
@@ -47,7 +45,7 @@ public class UserController {
     @Autowired
     private PlayerRepository playerRepository;
     @Autowired
-    private ItemRepository itemRepository;
+    private WeaponRepository weaponRepository;
     @Autowired
     private HistoryRepository historyRepository;
     @Autowired
@@ -114,22 +112,6 @@ public class UserController {
         player.setUserId(userRepository.findByUserId(userId).get());
         player = playerRepository.save(player);
 
-        ItemModel knife = new ItemModel();
-        knife.setPlayerId(player);
-        knife.setName(Weapon.KNIFE);
-        knife.setDamage(50);
-        knife.setPrice(100);
-        knife.setUsableCount(0);
-        knife = itemRepository.save(knife);
-
-        ItemModel gun = new ItemModel();
-        gun.setPlayerId(player);
-        gun.setName(Weapon.GUN);
-        gun.setDamage(50);
-        gun.setPrice(100);
-        gun.setUsableCount(0);
-        gun = itemRepository.save(gun);
-
         HistoryModel history = new HistoryModel();
         history.setPlayerId(player);
         history = historyRepository.save(history);
@@ -144,8 +126,7 @@ public class UserController {
                 history.getOneShot(),
                 history.getFinder(),
                 history.getLastWeekRank(),
-                knife.getUsableCount(),
-                gun.getUsableCount(),
+                null,
                 player.getPoint());
     }
 
