@@ -7,7 +7,7 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "weapon_realation")
+@Table(name = "weapon_relation")
 @Data
 public class WeaponRelation {
 

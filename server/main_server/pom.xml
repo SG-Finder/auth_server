@@ -59,11 +59,11 @@
 			<artifactId>jedis</artifactId>
 		</dependency>
 
-		<!-- mongo db -->
+		<!-- mongo db
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
-		</dependency>
+		</dependency> -->
 
 		<!-- lombok -->
 		<dependency>

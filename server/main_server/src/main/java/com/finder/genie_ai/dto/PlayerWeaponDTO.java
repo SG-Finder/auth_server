@@ -16,6 +16,6 @@ public class PlayerWeaponDTO {
     private int price;
 
     @SerializedName("usableCount")
-    private int usableCount;
+    private int usableCount = 0;
 
 }
