@@ -10,9 +10,9 @@ const moment =  require('moment');
 const matchingSpace = io.of('/matching');
 
 // DB module
-const mongo = require('mongodb');
-const mongoClient = mongo.MongoClient;
-const dbURL = 'mongodb://127.0.0.1:27017/';
+const mysql = require('mysql');
+//Todo make connection pool and then manage them
+const connection = mysql.createConnection(require('./db/db_info'));
 
 // Customizing module
 const sessionManage = require('./redis_dao/session');
@@ -39,8 +39,7 @@ matchingSpace.on('connection', function (socket) {
     socket.on('ack', function (data) {
         console.log(data);
         //TODO BAD REQUEST EXCEPTION
-        let key = "session:" + data.session_token + ":" + data.userId;
-        let sessionFlag = false;
+        let key = "session:" + data.session_token;
         sessionManage.isValidSession(redisClient, key, function (isValidSession) {
             if (isValidSession) {
                 sessionManage.findSessionData(redisClient, key, function (value) {
@@ -51,42 +50,34 @@ matchingSpace.on('connection', function (socket) {
                         permit : true,
                         afterEvent : "none"
                     });
-                });
 
-                mongoClient.connect(dbURL, function (err, db) {
-                    if (err) {
-                        console.log(err);
-                        //TODO send data
-                        socket.emit('getData', {
-                            dataAccess : false,
-                            afterEvent : "disconnect"
-                        });
-                        socket.disconnect();
-                        return;
-                    }
-                    let dbo = db.db('genie_ai');
-                    let query = { userId: data.userId };
-                    dbo.collection('players').find(query).toArray(function (err, playerData) {
+                    let selectQuery = "SELECT * FROM players WHERE nickname='" + data.nickname + "'";
+
+                    connection.connect(function (err) {
                         if (err) {
-                            socket.emit('getData', {
-                                dataAccess : false,
-                                afterEvent : "disconnect"
-                            });
                             console.log(err);
                             return;
                         }
-                        player[socket.id] = playerData[0];
-                        console.log(playerData[0]);
-                        player[socket.id].socket_id = socket.id;
-                        db.close();
-                    });
+                        connection.query(selectQuery, function (err, result, field) {
+                            if (err) {
+                                socket.emit('getData', {
+                                    dataAccess : false,
+                                    afterEvent : "disconnect"
+                                });
+                                console.log(err);
+                                return;
+                            }
 
-                    socket.emit('getData', {
-                        dataAccess : true,
-                        afterEvent : "ready"
-                    });
+                            player[socket.id] = result[0];
+                            player[socket.id].socket_id = socket.id;
+                            //connection.end();
+                            socket.emit('getData', {
+                                dataAccess : true,
+                                afterEvent : "ready"
+                            });
+                        });
+                    })
                 });
-
             }
             else {
                 socket.emit('authorized', {
@@ -94,7 +85,6 @@ matchingSpace.on('connection', function (socket) {
                     afterEvent : "disconnect"
                 });
                 socket.disconnect();
-                sessionFlag = false;
             }
         });
 
@@ -102,6 +92,7 @@ matchingSpace.on('connection', function (socket) {
 
     socket.on('ready', function (data) {
         //TODO delete event it is just testing event
+        console.log(player[socket.id]);
         if (player[socket.id] == null) {
             socket.emit('retryReady', { error: "connection DB is fail"});
             return;
@@ -109,7 +100,7 @@ matchingSpace.on('connection', function (socket) {
 
         socket.join(player[socket.id].tier, function () {
             matchingSpace.to(player[socket.id].tier).emit('entry', {
-                entryUser: player[socket.id].userId,
+                entryUser: player[socket.id].nickname,
                 entryUserScore: player[socket.id].score,
                 entryUserTier: player[socket.id].tier
             });
@@ -124,7 +115,7 @@ matchingSpace.on('connection', function (socket) {
             if (waitingPlayer[TIER.BRONZE].length !== 0) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.BRONZE].shift();
-                matchingResultData.playersId = [player[socket.id].userId, opponentPlayer.userId];
+                matchingResultData.playersId = [player[socket.id].nickname, opponentPlayer.nickname];
                 matchingResultData.roomId = game.generateRoomId();
                 socket.emit('matchingResult', matchingResultData);
                 console.log(opponentPlayer.socket_id);
@@ -145,7 +136,7 @@ matchingSpace.on('connection', function (socket) {
             if (waitingPlayer[TIER.SILVER].length !== 0) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.SILVER].shift();
-                matchingResultData.playersId = [player[socket.id].userId, opponentPlayer.userId];
+                matchingResultData.playersId = [player[socket.id].nickname, opponentPlayer.nickname];
                 matchingResultData.roomId = generateRoomId();
 
                 socket.emit('matchingResult', matchingResultData);
@@ -160,7 +151,7 @@ matchingSpace.on('connection', function (socket) {
             if (waitingPlayer[TIER.GOLD].length !== 0) {
                 let matchingResultData = {};
                 let opponentPlayer = waitingPlayer[TIER.GOLD].shift();
-                matchingResultData.playersId = [player[socket.id].userId, opponentPlayer.userId];
+                matchingResultData.playersId = [player[socket.id].nickname, opponentPlayer.nickname];
                 matchingResultData.roomId = generateRoomId();
 
                 socket.emit('matchingResult', matchingResultData);
@@ -175,7 +166,7 @@ matchingSpace.on('connection', function (socket) {
 
     socket.on('sendMessage', function (msg) {
         matchingSpace.to(player[socket.id].tier).emit('receiveMessage', {
-            from: player[socket.id].userId,
+            from: player[socket.id].nickname,
             message: msg.message
         });
     });
@@ -187,7 +178,7 @@ matchingSpace.on('connection', function (socket) {
         if (player[socket.id] !== undefined ) {
             socket.leave(player[socket.id].tier, function () {
                 matchingSpace.to(player[socket.id].tier).emit('leave', {
-                    leaveUser: player[socket.id].userId,
+                    leaveUser: player[socket.id].nickname,
                     leaveUserScore: player[socket.id].score,
                     leaveUserTier: player[socket.id].tier
                 });

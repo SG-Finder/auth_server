@@ -17,7 +17,7 @@
             });
 
             $('#login').submit(function(){
-                conn.emit("ack", {session_token:"Z2tzeG9kbmQwMDcxNTE3MjIwMzcasdf2MDYx", userId: $('#InputLogin').val(), sessionId: "gksxodnd007"});
+                conn.emit("ack", {session_token:"Z2tzeG9kbmQwMDcxNTE3NzUwMDY2NDU3", nickname: $('#InputLogin').val(), sessionId: "gksxodnd007"});
                 return false;
             });
             $('#ready').submit(function(){
@@ -38,6 +38,10 @@
                 console.log(data);
                 conn.disconnect();
             });
+
+            conn.on('getData', function(data) {
+                console.log(data);
+            })
 
             conn.on('disconnect', function (data) {
                 console.log("doesn't have authorization");
