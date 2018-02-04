@@ -1,5 +1,7 @@
 package com.finder.genie_ai.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finder.genie_ai.controller.command.DealCommand;
 import com.finder.genie_ai.dao.PlayerRepository;
 import com.finder.genie_ai.dao.WeaponRelationRepository;
@@ -11,14 +13,19 @@ import com.finder.genie_ai.exception.UnauthorizedException;
 import com.finder.genie_ai.model.game.item_relation.WeaponRelation;
 import com.finder.genie_ai.model.game.player.PlayerModel;
 import com.finder.genie_ai.model.game.weapon.WeaponModel;
+import com.finder.genie_ai.model.session.SessionModel;
 import com.finder.genie_ai.redis_dao.SessionTokenRedisRepository;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -30,16 +37,19 @@ public class ShopController {
     private WeaponRepository weaponRepository;
     private WeaponRelationRepository weaponRelationRepository;
     private ModelMapper modelMapper = new ModelMapper();
+    private ObjectMapper mapper;
 
     @Autowired
     public ShopController(SessionTokenRedisRepository sessionTokenRedisRepository,
                           PlayerRepository playerRepository,
                           WeaponRepository weaponRepository,
-                          WeaponRelationRepository weaponRelationRepository) {
+                          WeaponRelationRepository weaponRelationRepository,
+                          ObjectMapper mapper) {
         this.sessionTokenRedisRepository = sessionTokenRedisRepository;
         this.playerRepository = playerRepository;
         this.weaponRepository = weaponRepository;
         this.weaponRelationRepository = weaponRelationRepository;
+        this.mapper = mapper;
     }
 
     @Transactional
@@ -47,10 +57,15 @@ public class ShopController {
      public ShopDealDTO activeShop(@RequestHeader("session-token") String token,
                                    @RequestHeader("userId") String userId,
                                    @RequestBody @Valid DealCommand command,
-                                   BindingResult bindingResult) {
-        if (!sessionTokenRedisRepository.isSessionValid(token, userId)) {
+                                   BindingResult bindingResult,
+                                   HttpServletRequest request) throws JsonProcessingException {
+        if (!sessionTokenRedisRepository.isSessionValid(token)) {
             throw new UnauthorizedException();
         }
+        System.out.println(sessionTokenRedisRepository.findSessionToken(token));
+        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token));
+        SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
+        sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
 
         if (bindingResult.hasErrors()) {
             throw new BadRequestException("Not suitable parameter form");
@@ -58,8 +73,7 @@ public class ShopController {
         //TODO minimize send query to MySQL database server by making join query on players table with other tables
         Optional<PlayerModel> player = playerRepository.findByNickname(command.getNickname());
         Optional<WeaponModel> weapon = weaponRepository.findByName(command.getItem());
-        System.out.println("weapon : " + weapon.get().toString());
-        System.out.println("player : " + player.get().toString());
+
         Optional<WeaponRelation> weaponRelation = weaponRelationRepository.findByPlayerIdAndWeaponId(player.get(), weapon.get());
         int playerPoint = player.get().getPoint();
         int totalPrice = command.getCount() * weapon.get().getPrice();

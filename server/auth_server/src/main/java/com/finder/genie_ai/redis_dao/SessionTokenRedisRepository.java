@@ -2,15 +2,12 @@ package com.finder.genie_ai.redis_dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Repository
@@ -18,8 +15,8 @@ import java.util.concurrent.TimeUnit;
 public class SessionTokenRedisRepository {
 
     private static final String SESSION = "session";
-    public static final int TOKENKEY = 0;
-    public static final int USERKEY = 1;
+    private static final String USER = "user";
+    private static final long EXPIRED_TIME = 30L;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -30,47 +27,41 @@ public class SessionTokenRedisRepository {
         this.valueOps = redisTemplate.opsForValue();
     }
 
-    private List<String> scanRedis(String value, int method) {
-        StringBuffer key = new StringBuffer();
-        key.append("session:");
-        if (method == TOKENKEY) {
-            key.append(value).append(":*");
-        }
-        else if (method == USERKEY) {
-            key.append("*:").append(value);
-        }
-
-        Jedis jedis = new Jedis("localhost", 6379);
-        ScanParams scanParams = new ScanParams().count(20).match(key.toString());
-        String cursor = ScanParams.SCAN_POINTER_START;
-        do {
-            ScanResult<String> scanResult = jedis.scan(cursor, scanParams);
-            if (!scanResult.getResult().isEmpty()) {
-                scanResult.getResult().stream().forEach(System.out::println);
-                return scanResult.getResult();
-            }
-            cursor = scanResult.getStringCursor();
-        }
-        while (!cursor.equals(ScanParams.SCAN_POINTER_START));
-
-        return null;
-    }
-
     public void saveSessionToken(String token, String userId, String data) {
-        String key = SESSION + ":"  + token + ":" + userId;
-        valueOps.set(key, data, 20L, TimeUnit.MINUTES);
+        String tokenKey = SESSION + ":"  + token;
+        String userKey = USER + ":" + userId;
+        valueOps.set(tokenKey, data, EXPIRED_TIME, TimeUnit.MINUTES);
+        valueOps.set(userKey, token, EXPIRED_TIME, TimeUnit.MINUTES);
     }
 
-    public void updateSessionToken(String token, String userId, String data) {
-        String key = SESSION + ":"  + token + ":" + userId;
-        valueOps.set(key, data, 20L, TimeUnit.MINUTES);
+    public void updateSessionTokenOnDupLogin(String newToken, String oldToken, String userId, String data) {
+        String newTokenKey = SESSION + ":" + newToken;
+        String oldTokenKey = SESSION + ":" + oldToken;
+        String userKey = USER + ":" + userId;
+
+        valueOps.getOperations().expire(oldTokenKey, 0L, TimeUnit.NANOSECONDS);
+        valueOps.set(newTokenKey, data);
+        valueOps.set(userKey, newToken);
     }
 
+    public void updateSessionToken(String token, String data) {
+        String tokenKey = SESSION + ":" + token;
+        valueOps.set(tokenKey, data, EXPIRED_TIME, TimeUnit.MINUTES);
+    }
+
+
+    @Deprecated
     public String findSessionToken(String token, String userId) {
         String key = SESSION + ":"  + token + ":" + userId;
         return valueOps.get(key);
     }
 
+    public String findSessionToken(String token) {
+        String tokenKey = SESSION + ":" + token;
+        return valueOps.get(tokenKey);
+    }
+
+    @Deprecated
     public boolean isSessionValid(String token, String userId) {
         String key = SESSION + ":"  + token + ":" + userId;
         if (valueOps.get(key) == null) {
@@ -81,8 +72,9 @@ public class SessionTokenRedisRepository {
         }
     }
 
-    public boolean isSessionValidByUserId(String userId) {
-        if (scanRedis(userId, USERKEY) == null) {
+    public boolean isSessionValid(String token) {
+        String tokenKey = SESSION + ":"  + token;
+        if (valueOps.get(tokenKey) == null) {
             return false;
         }
         else {
@@ -90,23 +82,33 @@ public class SessionTokenRedisRepository {
         }
     }
 
-    public boolean isSessionValidByToken(String token) {
-        if (scanRedis(token, TOKENKEY) == null) {
-            return false;
-        }
-        else {
-            return true;
-        }
+    public String findSessionUserId(String userId) {
+        return valueOps.get(USER + ":" + userId);
     }
 
-    public List<String> findAllSessionInfo() {
-        //todo
-        return null;
-    }
-
+    @Deprecated
     public boolean deleteSession(String token, String userId) {
-        String key = SESSION + ":" + token + ":" + userId;
-        return valueOps.getOperations().expire(key, 1L, TimeUnit.NANOSECONDS);
+        String tokenKey = SESSION + ":" + token + ":" + userId;
+        return valueOps.getOperations().expire(tokenKey, 0L, TimeUnit.NANOSECONDS);
+    }
+
+    public boolean expireSession(String token, String userId) {
+        if (deleteSessionToken(token) && deleteSessionUser(userId)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private boolean deleteSessionToken(String token) {
+        String tokenKey = SESSION + ":" + token;
+        return valueOps.getOperations().expire(tokenKey, 0L, TimeUnit.NANOSECONDS);
+    }
+
+    private boolean deleteSessionUser(String userId) {
+        String userKey = USER + ":" + userId;
+        return valueOps.getOperations().expire(userKey, 0L, TimeUnit.NANOSECONDS);
     }
 
 }

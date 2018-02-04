@@ -100,15 +100,22 @@ public class UserController {
 
     }
 
+    //Todo delete @RequestHeader Param userId
     @Transactional
     @RequestMapping(value = "/register/game", method = RequestMethod.POST, produces = "application/json")
     public @ResponseBody PlayerDTO registerPlayer(@RequestHeader(name = "session-token") String token,
-                                                   @RequestHeader(name = "userId") String userId,
-                                                   @RequestBody @Valid PlayerRegisterCommand command,
-                                                   BindingResult bindingResult) throws JsonProcessingException {
-        if (!sessionTokenRedisRepository.isSessionValid(token, userId)) {
+                                                  @RequestHeader(name = "userId") String userId,
+                                                  @RequestBody @Valid PlayerRegisterCommand command,
+                                                  BindingResult bindingResult,
+                                                  HttpServletRequest request) throws JsonProcessingException {
+        if (!sessionTokenRedisRepository.isSessionValid(token)) {
             throw new UnauthorizedException();
         }
+
+        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token));
+        SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
+        System.out.println(mapper.writeValueAsString(sessionModel));
+        sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
 
         if (bindingResult.hasErrors()) {
             throw new BadRequestException("invalid parameter form");
@@ -152,12 +159,20 @@ public class UserController {
                             .orElseThrow(() -> new NotFoundException("Doesn't find user by userId. Please register first."));
         if (bCryptPasswordEncoder.matches(command.getPasswd() + user.getSalt(), user.getPasswd())) {
             response.setStatus(204);
-            String token = TokenGenerator.generateSessionToken(user.getUserId());
-            response.setHeader("session-token", token);
 
+            String newToken = TokenGenerator.generateSessionToken(user.getUserId());
             SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.now(), LocalDateTime.now());
-            //todo delete duplicate session
-            sessionTokenRedisRepository.saveSessionToken(token, user.getUserId(), mapper.writeValueAsString(sessionModel));
+            String data = mapper.writeValueAsString(sessionModel);
+            System.out.println(data);
+            String oldToken = sessionTokenRedisRepository.findSessionUserId(command.getUserId());
+            if (oldToken != null) {
+                sessionTokenRedisRepository.updateSessionTokenOnDupLogin(newToken, oldToken, command.getUserId(), data);
+            }
+            else {
+                sessionTokenRedisRepository.saveSessionToken(newToken, command.getUserId(), data);
+            }
+
+            response.setHeader("session-token", newToken);
         }
         else {
             throw new UnauthorizedException();
@@ -169,7 +184,7 @@ public class UserController {
     public void signoutUser(@RequestHeader(name = "session-token") String token,
                             @RequestHeader(name = "userId") String userId,
                             HttpServletResponse response) {
-        if (sessionTokenRedisRepository.deleteSession(token, userId)) {
+        if (sessionTokenRedisRepository.expireSession(token, userId)) {
             response.setHeader("expired-token", Boolean.TRUE.toString());
         }
         else {
@@ -192,18 +207,19 @@ public class UserController {
         }
     }
 
+    //Todo delete @RequestHeader Param userId
     @RequestMapping(value = "/{userId}", method = RequestMethod.GET, produces = "application/json")
     public @ResponseBody UserDTO getUserInfo(@PathVariable("userId") String userId,
                                                 @RequestHeader(name = "session-token") String token,
                                                 @RequestHeader(name = "userId") String activeUserId,
                                                 HttpServletRequest request) throws JsonProcessingException, UnsupportedEncodingException {
-        if (!sessionTokenRedisRepository.isSessionValid(token, userId)) {
+        if (!sessionTokenRedisRepository.isSessionValid(token)) {
             throw new UnauthorizedException();
         }
 
-        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token, activeUserId));
+        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token));
         SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
-        sessionTokenRedisRepository.updateSessionToken(token, userId, mapper.writeValueAsString(sessionModel));
+        sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
 
         UserModel user =  userRepository
                             .findByUserId(userId)
@@ -214,19 +230,20 @@ public class UserController {
         return userDTO;
     }
 
+    //Todo delete @RequestHeader Param userId
     @RequestMapping(value = "/{userId}", method = RequestMethod.PUT, produces = "application/json")
     public @ResponseBody UserDTO updateUserInfo(@PathVariable("userId") String userId,
                                                    @RequestBody UserChangeInfoCommand command,
                                                    @RequestHeader(name = "session-token") String token,
                                                    @RequestHeader(name = "userId") String activeUserId,
                                                    HttpServletRequest request) throws JsonProcessingException {
-        if (!sessionTokenRedisRepository.isSessionValid(token, userId) ) {
+        if (!sessionTokenRedisRepository.isSessionValid(token) ) {
             throw new UnauthorizedException();
         }
 
         JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token, activeUserId));
         SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
-        sessionTokenRedisRepository.updateSessionToken(token, userId, mapper.writeValueAsString(sessionModel));
+        sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
 
         Optional<UserModel> user = userRepository.findByUserId(userId);
         if (!user.isPresent()) {
@@ -254,6 +271,7 @@ public class UserController {
         return userDTO;
     }
 
+    //Todo delete @RequestHeader Param userId
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
     public void deleteUser(@PathVariable("userId") String userId,
                            @RequestHeader(name = "session-token") String token,
@@ -262,12 +280,12 @@ public class UserController {
         if (userId == null) {
             throw new BadRequestException("doesn't exist path variable");
         }
-        if (!sessionTokenRedisRepository.isSessionValid(token, userId)) {
+        if (!sessionTokenRedisRepository.isSessionValid(token)) {
             throw new UnauthorizedException();
         }
         JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token, activeUserId));
         SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
-        sessionTokenRedisRepository.updateSessionToken(token, userId, mapper.writeValueAsString(sessionModel));
+        sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
 
         userRepository.deleteByUserId(userId);;
         sessionTokenRedisRepository.deleteSession(token, userId);
