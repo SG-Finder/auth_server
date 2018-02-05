@@ -5,11 +5,13 @@ import com.finder.genie_ai.enumdata.Weapon;
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class PlayerDTO {
 
     @SerializedName("nickname")
@@ -25,7 +27,7 @@ public class PlayerDTO {
     private HistoryDTO history;
 
     @SerializedName("weapon")
-    private List<Weapon> weapons;
+    private List<PlayerWeaponDTO> weapons;
 
     @SerializedName("point")
     private int point;
