@@ -13,6 +13,7 @@ const redisClient = redis.createClient(6379, '127.0.0.1');
 
 // DB module
 const mysql = require('mysql');
+
 //Todo make connection pool and then manage them
 const connection = mysql.createConnection(require('./db/db_info'));
 connection.connect(function (err) {

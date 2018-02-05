@@ -186,7 +186,6 @@ public class UserController {
             String newToken = TokenGenerator.generateSessionToken(user.getUserId());
             SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.now(), LocalDateTime.now());
             String data = mapper.writeValueAsString(sessionModel);
-            System.out.println(data);
             String oldToken = sessionTokenRedisRepository.findSessionUserId(command.getUserId());
             if (oldToken != null) {
                 sessionTokenRedisRepository.updateSessionTokenOnDupLogin(newToken, oldToken, command.getUserId(), data);
@@ -247,6 +246,14 @@ public class UserController {
                             .orElseThrow(() -> new NotFoundException("Doesn't find user by userId"));
 
         UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+
+        Optional<PlayerModel> playerModel = playerRepository.findByUserId(user);
+        if (playerModel.isPresent()) {
+            userDTO.setNickname(playerModel.get().getNickname());
+        }
+        else {
+            userDTO.setNickname("0");
+        }
 
         return userDTO;
     }

@@ -14,6 +14,9 @@ public class UserDTO {
     @SerializedName("userName")
     private String userName;
 
+    @SerializedName("nickname")
+    private String nickname;
+
     @SerializedName("email")
     private String email;
 
