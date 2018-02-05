@@ -1,18 +1,29 @@
 // Core module
 const express = require('express');
 const app = express();
-const redis = require('redis');
-const redisClient = redis.createClient(6379, '127.0.0.1');
 const server = require('http').createServer(app);
 const io = require('socket.io').listen(server);
-let port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 const moment =  require('moment');
 const matchingSpace = io.of('/matching');
+
+//redis module
+const redis = require('redis');
+const redisClient = redis.createClient(6379, '127.0.0.1');
 
 // DB module
 const mysql = require('mysql');
 //Todo make connection pool and then manage them
 const connection = mysql.createConnection(require('./db/db_info'));
+connection.connect(function (err) {
+    if (err) {
+        console.log(err);
+        throw err;
+    }
+    else {
+        console.log('connect mysql server');
+    }
+});
 
 // Customizing module
 const sessionManage = require('./redis_dao/session');
@@ -20,15 +31,8 @@ const sessionManage = require('./redis_dao/session');
 // Util
 const game = require('./util/matchingGame');
 let player = {};
-const TIER = {
-    BRONZE: 0,
-    SILVER: 1,
-    GOLD: 2
-};
 let waitingPlayer = [];
-waitingPlayer[TIER.BRONZE] = [];
-waitingPlayer[TIER.SILVER] = [];
-waitingPlayer[TIER.GOLD] = [];
+const gameLobbyA = 'lobby_a';
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
@@ -53,30 +57,25 @@ matchingSpace.on('connection', function (socket) {
 
                     let selectQuery = "SELECT * FROM players WHERE nickname='" + data.nickname + "'";
 
-                    connection.connect(function (err) {
-                        if (err) {
-                            console.log(err);
-                            return;
-                        }
-                        connection.query(selectQuery, function (err, result, field) {
-                            if (err) {
-                                socket.emit('getData', {
-                                    dataAccess : false,
-                                    afterEvent : "disconnect"
-                                });
-                                console.log(err);
-                                return;
-                            }
 
-                            player[socket.id] = result[0];
-                            player[socket.id].socket_id = socket.id;
-                            //connection.end();
+                    connection.query(selectQuery, function (err, result, field) {
+                        if (err) {
                             socket.emit('getData', {
-                                dataAccess : true,
-                                afterEvent : "ready"
+                                dataAccess : false,
+                                afterEvent : "disconnect"
                             });
+                            console.log(err);
+                            throw err;
+                        }
+
+                        player[socket.id] = result[0];
+                        player[socket.id].socket_id = socket.id;
+                        //connection.end();
+                        socket.emit('getData', {
+                            dataAccess : true,
+                            afterEvent : "ready"
                         });
-                    })
+                    });
                 });
             }
             else {
@@ -98,8 +97,8 @@ matchingSpace.on('connection', function (socket) {
             return;
         }
 
-        socket.join(player[socket.id].tier, function () {
-            matchingSpace.to(player[socket.id].tier).emit('entry', {
+        socket.join(gameLobbyA, function () {
+            matchingSpace.to(gameLobbyA).emit('entry', {
                 entryUser: player[socket.id].nickname,
                 entryUserScore: player[socket.id].score,
                 entryUserTier: player[socket.id].tier
@@ -110,62 +109,22 @@ matchingSpace.on('connection', function (socket) {
     socket.on('gameStart', function () {
         //TODO modulation && 동시에 접속했을 때의 이슈 && 매칭이 실패했을 때의 이슈
         //TODO 매칭 결과 redis에 저장
-        //let timeoutBronzeMatching;
-        if (player[socket.id].tier === 'BRONZE') {
-            if (waitingPlayer[TIER.BRONZE].length !== 0) {
-                let matchingResultData = {};
-                let opponentPlayer = waitingPlayer[TIER.BRONZE].shift();
-                matchingResultData.playersId = [player[socket.id].nickname, opponentPlayer.nickname];
-                matchingResultData.roomId = game.generateRoomId();
-                socket.emit('matchingResult', matchingResultData);
-                console.log(opponentPlayer.socket_id);
-                matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
-                //clearTimeout(timeoutBronzeMatching);
-            }
-            else {
-                waitingPlayer[TIER.BRONZE][waitingPlayer[TIER.BRONZE].length] = player[socket.id];
-                // timeoutBronzeMatching = setTimeout(function () {
-                //     socket.emit('matchingResult', {
-                //         matchingResult: 'fail'
-                //     });
-                //     waitingPlayer[TIER.BRONZE].shift();
-                // }, 300000)
-            }
-        }
-        else if (player[socket.id].tier === 'SILVER') {
-            if (waitingPlayer[TIER.SILVER].length !== 0) {
-                let matchingResultData = {};
-                let opponentPlayer = waitingPlayer[TIER.SILVER].shift();
-                matchingResultData.playersId = [player[socket.id].nickname, opponentPlayer.nickname];
-                matchingResultData.roomId = generateRoomId();
-
-                socket.emit('matchingResult', matchingResultData);
-                console.log(opponentPlayer.socket_id);
-                matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
-            }
-            else {
-                waitingPlayer[TIER.SILVER][waitingPlayer[TIER.SILVER].length] = player[socket.id];
-            }
+        if (waitingPlayer.length !== 0) {
+            let matchingResultData = {};
+            let opponentPlayer = waitingPlayer.shift();
+            matchingResultData.playersId = [player[socket.id].nickname, opponentPlayer.nickname];
+            matchingResultData.roomId = game.generateRoomId();
+            game.saveMatchingResultRedis(redisClient, player[socket.id], opponentPlayer, matchingResultData.roomId);
+            socket.emit('matchingResult', matchingResultData);
+            matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
         }
         else {
-            if (waitingPlayer[TIER.GOLD].length !== 0) {
-                let matchingResultData = {};
-                let opponentPlayer = waitingPlayer[TIER.GOLD].shift();
-                matchingResultData.playersId = [player[socket.id].nickname, opponentPlayer.nickname];
-                matchingResultData.roomId = generateRoomId();
-
-                socket.emit('matchingResult', matchingResultData);
-                matchingSpace.to(opponentPlayer.socket_id).emit('matchingResult', matchingResultData);
-                console.log(opponentPlayer.socket_id);
-            }
-            else {
-                waitingPlayer[TIER.GOLD][waitingPlayer[TIER.GOLD].length] = player[socket.id];
-            }
+            waitingPlayer[waitingPlayer.length] = player[socket.id];
         }
     });
 
     socket.on('sendMessage', function (msg) {
-        matchingSpace.to(player[socket.id].tier).emit('receiveMessage', {
+        matchingSpace.to(gameLobbyA).emit('receiveMessage', {
             from: player[socket.id].nickname,
             message: msg.message
         });
@@ -176,8 +135,8 @@ matchingSpace.on('connection', function (socket) {
         console.log('somenoe disconnect this server');
         console.log(socket.id);
         if (player[socket.id] !== undefined ) {
-            socket.leave(player[socket.id].tier, function () {
-                matchingSpace.to(player[socket.id].tier).emit('leave', {
+            socket.leave(gameLobbyA, function () {
+                matchingSpace.to(gameLobbyA).emit('leave', {
                     leaveUser: player[socket.id].nickname,
                     leaveUserScore: player[socket.id].score,
                     leaveUserTier: player[socket.id].tier

@@ -17,7 +17,11 @@
             });
 
             $('#login').submit(function(){
-                conn.emit("ack", {session_token:"Z2tzeG9kbmQwMDcxNTE3NzUwMDY2NDU3", nickname: $('#InputLogin').val(), sessionId: "gksxodnd007"});
+                conn.emit("ack", {session_token:"Z2tzeG9kbmQwMDcxNTE3Nzk2MTA2MDM0", nickname: $('#InputLogin').val()});
+                return false;
+            });
+            $('#login2').submit(function(){
+                conn.emit("ack", {session_token:"Z2tzeG9kbmQwMDE1MTc3OTYxMjc2NjA=", nickname: $('#InputLogin2').val()});
                 return false;
             });
             $('#ready').submit(function(){
@@ -69,6 +73,10 @@
 </form>
 <form id = "login" action = "">
     login: <input type="text" id="InputLogin"><br>
+    <input type="submit" value="Submit">
+</form>
+<form id = "login2" action = "">
+    login2: <input type="text" id="InputLogin2"><br>
     <input type="submit" value="Submit">
 </form>
 <form id = "ready" action = "">
