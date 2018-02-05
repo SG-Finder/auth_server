@@ -2,19 +2,22 @@ package com.finder.genie_ai.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finder.genie_ai.dao.HistoryRepository;
-import com.finder.genie_ai.dao.PlayerRepository;
-import com.finder.genie_ai.dao.UserRepository;
+import com.finder.genie_ai.dao.*;
 import com.finder.genie_ai.dto.HistoryDTO;
 import com.finder.genie_ai.dto.PlayerDTO;
+import com.finder.genie_ai.dto.PlayerWeaponDTO;
 import com.finder.genie_ai.dto.UserDTO;
+import com.finder.genie_ai.enumdata.Weapon;
 import com.finder.genie_ai.model.game.history.HistoryModel;
+import com.finder.genie_ai.model.game.item_relation.WeaponRelation;
 import com.finder.genie_ai.model.game.player.PlayerModel;
 import com.finder.genie_ai.exception.*;
 import com.finder.genie_ai.model.game.player.command.PlayerRegisterCommand;
+import com.finder.genie_ai.model.game.weapon.WeaponModel;
 import com.finder.genie_ai.model.session.SessionModel;
 import com.finder.genie_ai.model.user.UserModel;
 import com.finder.genie_ai.model.user.command.UserChangeInfoCommand;
+import com.finder.genie_ai.model.user.command.UserDeleteCommand;
 import com.finder.genie_ai.model.user.command.UserSignInCommand;
 import com.finder.genie_ai.model.user.command.UserSignUpCommand;
 import com.finder.genie_ai.redis_dao.SessionTokenRedisRepository;
@@ -22,12 +25,14 @@ import com.finder.genie_ai.util.TokenGenerator;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 
+import javax.naming.Binding;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
@@ -35,6 +40,8 @@ import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -47,6 +54,8 @@ public class UserController {
     private ObjectMapper mapper;
     private SessionTokenRedisRepository sessionTokenRedisRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private WeaponRelationRepository weaponRelationRepository;
+    private WeaponRepository weaponRepository;
 
     private final ModelMapper modelMapper = new ModelMapper();
 
@@ -56,20 +65,23 @@ public class UserController {
                           HistoryRepository historyRepository,
                           SessionTokenRedisRepository sessionTokenRedisRepository,
                           ObjectMapper mapper,
-                          BCryptPasswordEncoder bCryptPasswordEncoder) {
+                          BCryptPasswordEncoder bCryptPasswordEncoder,
+                          WeaponRelationRepository weaponRelationRepository,
+                          WeaponRepository weaponRepository) {
         this.userRepository = userRepository;
         this.playerRepository = playerRepository;
         this.historyRepository = historyRepository;
         this.sessionTokenRedisRepository = sessionTokenRedisRepository;
         this.mapper = mapper;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.weaponRelationRepository = weaponRelationRepository;
+        this.weaponRepository = weaponRepository;
     }
-
 
     @Transactional
     @RequestMapping(value = "/signup", method = RequestMethod.POST, produces = "application/json")
     public @ResponseBody UserDTO signupUser(@RequestBody @Valid UserSignUpCommand command,
-                                               BindingResult bindingResult) throws JsonProcessingException, UnsupportedEncodingException {
+                                            BindingResult bindingResult) throws JsonProcessingException, UnsupportedEncodingException {
         if (bindingResult.hasErrors()) {
             System.out.println(command.toString());
             throw new BadRequestException("invalid parameter form");
@@ -100,11 +112,9 @@ public class UserController {
 
     }
 
-    //Todo delete @RequestHeader Param userId
     @Transactional
     @RequestMapping(value = "/register/game", method = RequestMethod.POST, produces = "application/json")
     public @ResponseBody PlayerDTO registerPlayer(@RequestHeader(name = "session-token") String token,
-                                                  @RequestHeader(name = "userId") String userId,
                                                   @RequestBody @Valid PlayerRegisterCommand command,
                                                   BindingResult bindingResult,
                                                   HttpServletRequest request) throws JsonProcessingException {
@@ -128,20 +138,33 @@ public class UserController {
 
         PlayerModel player = new PlayerModel();
         player.setNickname(command.getNickname());
-        player.setUserId(userRepository.findByUserId(userId).get());
+        player.setUserId(userRepository.findByUserId(command.getUserId()).get());
         player = playerRepository.save(player);
 
         HistoryModel history = new HistoryModel();
         history.setPlayerId(player);
         history = historyRepository.save(history);
 
+        WeaponRelation weaponRelation = new WeaponRelation();
+        weaponRelation.setPlayerId(player);
+        weaponRelation.setUsableCount(Integer.MAX_VALUE);
+        weaponRelation.setWeaponId(weaponRepository.findOne(1));
+        weaponRelation = weaponRelationRepository.save(weaponRelation);
+
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
         HistoryDTO historyDTO = modelMapper.map(history, HistoryDTO.class);
+
+        PlayerWeaponDTO playerWeaponDTO = modelMapper.map(weaponRelation.getWeaponId(), PlayerWeaponDTO.class);
+        playerWeaponDTO.setUsableCount(weaponRelation.getUsableCount());
+
+        List<PlayerWeaponDTO> weaponList = new ArrayList<>(1);
+        weaponList.add(playerWeaponDTO);
 
         return new PlayerDTO(player.getNickname(),
                 player.getTier(),
                 player.getScore(),
                 historyDTO,
-                null,
+                weaponList,
                 player.getPoint());
     }
 
@@ -207,11 +230,9 @@ public class UserController {
         }
     }
 
-    //Todo delete @RequestHeader Param userId
     @RequestMapping(value = "/{userId}", method = RequestMethod.GET, produces = "application/json")
     public @ResponseBody UserDTO getUserInfo(@PathVariable("userId") String userId,
-                                                @RequestHeader(name = "session-token") String token,
-                                                @RequestHeader(name = "userId") String activeUserId,
+                                             @RequestHeader(name = "session-token") String token,
                                                 HttpServletRequest request) throws JsonProcessingException, UnsupportedEncodingException {
         if (!sessionTokenRedisRepository.isSessionValid(token)) {
             throw new UnauthorizedException();
@@ -230,33 +251,35 @@ public class UserController {
         return userDTO;
     }
 
-    //Todo delete @RequestHeader Param userId
     @RequestMapping(value = "/{userId}", method = RequestMethod.PUT, produces = "application/json")
     public @ResponseBody UserDTO updateUserInfo(@PathVariable("userId") String userId,
-                                                   @RequestBody UserChangeInfoCommand command,
+                                                   @RequestBody @Valid UserChangeInfoCommand command,
+                                                   BindingResult bindingResult,
                                                    @RequestHeader(name = "session-token") String token,
-                                                   @RequestHeader(name = "userId") String activeUserId,
                                                    HttpServletRequest request) throws JsonProcessingException {
-        if (!sessionTokenRedisRepository.isSessionValid(token) ) {
+        if (bindingResult.hasErrors()) {
+            throw new BadRequestException("Please follow data form");
+        }
+
+        UserModel user = userRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Doesn't find user by userId. Please register first."));
+
+        if (!sessionTokenRedisRepository.isSessionValid(token)
+                || !bCryptPasswordEncoder.matches(command.getPasswd() + user.getSalt(), user.getPasswd())) {
             throw new UnauthorizedException();
         }
 
-        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token, activeUserId));
+        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token));
         SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
         sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
 
-        Optional<UserModel> user = userRepository.findByUserId(userId);
-        if (!user.isPresent()) {
-            throw new NotFoundException("Doesn't find user by userId. Please register first.");
-        }
-
         int resCount = userRepository.updateUserInfo(
-                userId,
-                bCryptPasswordEncoder.encode(command.getPasswd() + user.get().getSalt()),
                 command.getUserName(),
                 command.getEmail(),
                 LocalDate.parse(command.getBirth()),
-                command.getIntroduce());
+                command.getIntroduce(),
+                userId);
 
         if (resCount == 0) {
             throw new ServerException("doesn't execute query");
@@ -271,24 +294,29 @@ public class UserController {
         return userDTO;
     }
 
-    //Todo delete @RequestHeader Param userId
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
     public void deleteUser(@PathVariable("userId") String userId,
                            @RequestHeader(name = "session-token") String token,
-                           @RequestHeader(name = "userId") String activeUserId,
+                           @RequestBody @Valid UserDeleteCommand command,
+                           BindingResult bindingResult,
                            HttpServletRequest request) throws JsonProcessingException {
-        if (userId == null) {
-            throw new BadRequestException("doesn't exist path variable");
+        if (userId == null || bindingResult.hasErrors()) {
+            throw new BadRequestException("Please follow data form");
         }
-        if (!sessionTokenRedisRepository.isSessionValid(token)) {
+        UserModel user = userRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Doesn't find user by userId. Please register first."));
+
+        if (!sessionTokenRedisRepository.isSessionValid(token)
+                || !bCryptPasswordEncoder.matches(command.getPasswd() + user.getSalt(), user.getPasswd())) {
             throw new UnauthorizedException();
         }
-        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token, activeUserId));
+        JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token));
         SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
         sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
 
-        userRepository.deleteByUserId(userId);;
-        sessionTokenRedisRepository.deleteSession(token, userId);
+        userRepository.deleteByUserId(userId);
+        sessionTokenRedisRepository.expireSession(token, userId);
     }
 
 }

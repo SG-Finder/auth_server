@@ -26,7 +26,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/finder/shop")
@@ -36,8 +38,8 @@ public class ShopController {
     private PlayerRepository playerRepository;
     private WeaponRepository weaponRepository;
     private WeaponRelationRepository weaponRelationRepository;
-    private ModelMapper modelMapper = new ModelMapper();
     private ObjectMapper mapper;
+    private ModelMapper modelMapper = new ModelMapper();
 
     @Autowired
     public ShopController(SessionTokenRedisRepository sessionTokenRedisRepository,
@@ -55,14 +57,12 @@ public class ShopController {
     @Transactional
     @RequestMapping(value = "", method = RequestMethod.POST)
      public ShopDealDTO activeShop(@RequestHeader("session-token") String token,
-                                   @RequestHeader("userId") String userId,
                                    @RequestBody @Valid DealCommand command,
                                    BindingResult bindingResult,
                                    HttpServletRequest request) throws JsonProcessingException {
         if (!sessionTokenRedisRepository.isSessionValid(token)) {
             throw new UnauthorizedException();
         }
-        System.out.println(sessionTokenRedisRepository.findSessionToken(token));
         JsonElement element = new JsonParser().parse(sessionTokenRedisRepository.findSessionToken(token));
         SessionModel sessionModel = new SessionModel(request.getRemoteAddr(), LocalDateTime.parse(element.getAsJsonObject().get("signin_at").getAsString()), LocalDateTime.now());
         sessionTokenRedisRepository.updateSessionToken(token, mapper.writeValueAsString(sessionModel));
@@ -73,8 +73,8 @@ public class ShopController {
         //TODO minimize send query to MySQL database server by making join query on players table with other tables
         Optional<PlayerModel> player = playerRepository.findByNickname(command.getNickname());
         Optional<WeaponModel> weapon = weaponRepository.findByName(command.getItem());
-
         Optional<WeaponRelation> weaponRelation = weaponRelationRepository.findByPlayerIdAndWeaponId(player.get(), weapon.get());
+
         int playerPoint = player.get().getPoint();
         int totalPrice = command.getCount() * weapon.get().getPrice();
 

@@ -17,11 +17,11 @@ public class WeaponRelation {
 
     @ManyToOne
     @JoinColumn(name = "player_id",foreignKey = @ForeignKey(name = "FK_Items_Players"), nullable = false)
-    private PlayerModel player_id;
+    private PlayerModel playerId;
 
     @ManyToOne
     @JoinColumn(name = "weapon_id",foreignKey = @ForeignKey(name = "FK_Items_Weapons"), nullable = false)
-    private WeaponModel weapon_id;
+    private WeaponModel weaponId;
 
     @Column(name = "usable_count", nullable = false)
     protected int usableCount;

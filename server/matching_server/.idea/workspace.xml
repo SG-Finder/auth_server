@@ -4,7 +4,15 @@
     <bookmark url="file://$PROJECT_DIR$/app.js" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9e621be0-8e49-4c0d-b07b-1e2bf16d61a1" name="Default" comment="" />
+    <list default="true" id="9e621be0-8e49-4c0d-b07b-1e2bf16d61a1" name="Default" comment="">
+      <change beforePath="" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/model/user/command/UserDeleteCommand.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/controller/UserController.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/controller/UserController.java" />
+      <change beforePath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/UserRepository.java" afterPath="$PROJECT_DIR$/../auth_server/src/main/java/com/finder/genie_ai/dao/UserRepository.java" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/PlayerController.java" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/PlayerController.java" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/ShopController.java" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/controller/ShopController.java" />
+      <change beforePath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dto/PlayerDTO.java" afterPath="$PROJECT_DIR$/../main_server/src/main/java/com/finder/genie_ai/dto/PlayerDTO.java" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+    </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -40,8 +48,8 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1183">
-              <caret line="105" column="11" lean-forward="true" selection-start-line="105" selection-start-column="11" selection-end-line="105" selection-end-column="11" />
+            <state relative-caret-position="360">
+              <caret line="24" column="5" lean-forward="true" selection-start-line="24" selection-start-column="5" selection-end-line="24" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -263,17 +271,18 @@
       <workItem from="1517655502082" duration="886000" />
       <workItem from="1517742507677" duration="1608000" />
       <workItem from="1517746769880" duration="4691000" />
-      <workItem from="1517787064902" duration="5009000" />
+      <workItem from="1517787064902" duration="6141000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="174980000" />
+    <option name="totallyTimeSpent" value="176112000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="812" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15902779" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15902779" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298647" sideWeight="0.5021075" order="7" side_tool="true" content_ui="tabs" />
@@ -631,8 +640,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1183">
-          <caret line="105" column="11" lean-forward="true" selection-start-line="105" selection-start-column="11" selection-end-line="105" selection-end-column="11" />
+        <state relative-caret-position="360">
+          <caret line="24" column="5" lean-forward="true" selection-start-line="24" selection-start-column="5" selection-end-line="24" selection-end-column="5" />
           <folding />
         </state>
       </provider>

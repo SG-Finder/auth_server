@@ -11,5 +11,7 @@ public class PlayerRegisterCommand {
 
     @NotNull
     private String nickname;
+    @NotNull
+    private String userId;
 
 }
